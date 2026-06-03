@@ -32,6 +32,7 @@ from repo import (
     notificacao_repo,
     auditoria_repo,
     pagamento_repo,
+    servico_repo,
 )
 from repo import chat_sala_repo, chat_participante_repo, chat_mensagem_repo
 
@@ -47,6 +48,7 @@ from routes.chat_routes import router as chat_router
 from routes.notificacao_routes import router as notificacao_router
 from routes.pagamento_routes import router as pagamento_router
 from routes.admin_pagamentos_routes import router as admin_pagamentos_router
+from routes.admin_servicos_routes import router as admin_servicos_router
 from routes.public_routes import router as public_router
 from routes.examples_routes import router as examples_router
 
@@ -91,6 +93,7 @@ TABELAS = [
     (notificacao_repo, "notificacao"),
     (auditoria_repo, "auditoria"),
     (pagamento_repo, "pagamento"),
+    (servico_repo, "servico"),
 ]
 
 # Criar tabelas do banco de dados
@@ -147,6 +150,7 @@ ROUTERS = [
     (notificacao_router, ["Notificações"], "notificações"),
     (pagamento_router, ["Pagamentos"], "pagamentos"),
     (admin_pagamentos_router, ["Admin - Pagamentos"], "admin de pagamentos"),
+    (admin_servicos_router, ["Admin - Serviços"], "admin de serviços"),
     (public_router, ["Público"], "público"),
     (examples_router, ["Exemplos"], "exemplos"),
 ]
