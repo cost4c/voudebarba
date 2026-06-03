@@ -17,9 +17,9 @@
 
     <!-- Posicionamento do toast: renderizado inline para evitar cache de CSS estático -->
     <style>
-    #toast-container {
-{{ toast_container_css() }}
-    }
+        #toast-container {
+            {{ toast_container_css() }}
+        }
     </style>
 
     <!-- Identidade visual: favicon, fontes e cores personalizadas -->
@@ -51,7 +51,7 @@
         <div class="container">
             <a class="navbar-brand d-flex align-middle" href="/index">
                 <img src="{{ tema.logo_url }}" alt="Logo" height="30" class="d-inline-block align-text-top me-2"
-                    onerror="this.style.display='none'">
+                     onerror="this.style.display='none'">
                 {{ APP_NAME }}
             </a>
 
@@ -64,46 +64,51 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link {{ 'active' if request.path == '/usuario' else '' }}"
-                            href="/usuario"
-                            {{ 'aria-current=page' if request.path == '/usuario' else '' }}>Dashboard</a>
+                           href="/usuario"
+                           {{ 'aria-current=page' if request.path == '/usuario' else '' }}>Dashboard</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ 'active' if '/usuario/perfil/' in request.path else '' }}"
-                            href="/usuario/perfil/visualizar"
-                            {{ 'aria-current=page' if '/usuario/perfil/' in request.path else '' }}>Perfil</a>
+                           href="/usuario/perfil/visualizar"
+                           {{ 'aria-current=page' if '/usuario/perfil/' in request.path else '' }}>Perfil</a>
                     </li>
                     {% if usuario_logado and usuario_logado.perfil == 'Administrador' %}
                     <li class="nav-item">
                         <a class="nav-link {{ 'active' if '/admin/chamados/' in request.path else '' }}"
-                            href="/admin/chamados/listar"
-                            {{ 'aria-current=page' if '/admin/chamados/' in request.path else '' }}>Chamados</a>
+                           href="/admin/chamados/listar"
+                           {{ 'aria-current=page' if '/admin/chamados/' in request.path else '' }}>Chamados</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ 'active' if '/admin/usuarios/' in request.path else '' }}"
-                            href="/admin/usuarios/listar"
-                            {{ 'aria-current=page' if '/admin/usuarios/' in request.path else '' }}>Usuários</a>
+                           href="/admin/usuarios/listar"
+                           {{ 'aria-current=page' if '/admin/usuarios/' in request.path else '' }}>Usuários</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if '/admin/servicos/' in request.path else '' }}"
+                           href="/admin/servicos/listar"
+                           {{ 'aria-current=page' if '/admin/servicos/' in request.path else '' }}>Serviços</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ 'active' if '/admin/configuracoes' in request.path else '' }}"
-                            href="/admin/configuracoes"
-                            {{ 'aria-current=page' if '/admin/configuracoes' in request.path else '' }}>Configurações</a>
+                           href="/admin/configuracoes"
+                           {{ 'aria-current=page' if '/admin/configuracoes' in request.path else '' }}>Configurações</a>
                     </li>
 
                     <li class="nav-item">
                         <a class="nav-link {{ 'active' if '/admin/auditoria' in request.path else '' }}"
-                            href="/admin/auditoria"
-                            {{ 'aria-current=page' if '/admin/auditoria' in request.path else '' }}>Auditoria</a>
+                           href="/admin/auditoria"
+                           {{ 'aria-current=page' if '/admin/auditoria' in request.path else '' }}>Auditoria</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ 'active' if '/admin/backups/' in request.path else '' }}"
-                            href="/admin/backups/listar"
-                            {{ 'aria-current=page' if '/admin/backups/' in request.path else '' }}>Backup</a>
+                           href="/admin/backups/listar"
+                           {{ 'aria-current=page' if '/admin/backups/' in request.path else '' }}>Backup</a>
                     </li>
                     {% else %}
                     <li class="nav-item">
                         <a class="nav-link {{ 'active' if '/chamados/' in request.path else '' }}"
-                            href="/chamados/listar"
-                            {{ 'aria-current=page' if '/chamados/' in request.path else '' }}>Chamados</a>
+                           href="/chamados/listar"
+                           {{ 'aria-current=page' if '/chamados/' in request.path else '' }}>Chamados</a>
                     </li>
                     {% endif %}
                 </ul>
