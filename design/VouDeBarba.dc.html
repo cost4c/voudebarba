@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+    :root{--accent:#FF9B51;--accent-d:#ef8434;--accent-soft:#FFEAD6}
+    input,button,textarea,select{font-family:inherit}
+    input:focus,textarea:focus{outline:none;border-color:var(--accent)!important}
+    @keyframes vdbToast{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+    ::-webkit-scrollbar{height:8px;width:8px}
+    ::-webkit-scrollbar-thumb{background:#cdd7dc;border-radius:8px}
+    .vdb-shop-grid > *{min-width:0}
+    @media (max-width:980px){
+      .vdb-shop-grid{grid-template-columns:1fr!important}
+      .vdb-shop-grid > *{min-width:0!important}
+      .vdb-shop-grid aside{position:static!important;top:auto!important}
+      .vdb-svc-grid{grid-template-columns:1fr!important}
+      .vdb-cfg-grid{grid-template-columns:1fr!important}
+      .vdb-shops-grid{grid-template-columns:repeat(2,1fr)!important}
+    }
+    @media (max-width:620px){
+      .vdb-shops-grid{grid-template-columns:1fr!important}
+      .vdb-slot-grid{grid-template-columns:repeat(4,1fr)!important}
+    }
+  </style>
+</helmet>
+<div style="min-height:100vh;background:#EAEFEF;font-family:'Public Sans',system-ui,sans-serif;color:#25343F">
+
+  <!-- ===== HEADER ===== -->
+  <header style="position:sticky;top:0;z-index:50;background:#25343F;color:#fff;border-bottom:1px solid rgba(255,255,255,.08)">
+    <div style="max-width:1200px;margin:0 auto;padding:0 24px;height:68px;display:flex;align-items:center;gap:28px">
+      <div onClick="{{ navHome }}" style="display:flex;align-items:center;gap:11px;cursor:pointer;flex:none">
+        <img src="{{ brandLogo }}" alt="VouDeBarba" style="height:34px;width:auto;filter:brightness(0) invert(1)">
+        <span style="font-family:'Archivo',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.02em">VouDe<span style="color:var(--accent)">Barba</span></span>
+      </div>
+
+      <nav style="display:flex;align-items:center;gap:6px;margin-left:8px">
+        <sc-if value="{{ isCliente }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ navHome }}" style="background:none;border:none;font-size:14.5px;font-weight:600;cursor:pointer;padding:9px 13px;border-radius:9px;{{ navHomeStyle }}">Barbearias</button>
+          <button onClick="{{ navAppts }}" style="background:none;border:none;font-size:14.5px;font-weight:600;cursor:pointer;padding:9px 13px;border-radius:9px;{{ navApptsStyle }}">Meus agendamentos</button>
+        </sc-if>
+        <sc-if value="{{ isBarbearia }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ navAgenda }}" style="background:none;border:none;font-size:14.5px;font-weight:600;cursor:pointer;padding:9px 13px;border-radius:9px;{{ navAgendaStyle }}">Agenda</button>
+          <button onClick="{{ navConfig }}" style="background:none;border:none;font-size:14.5px;font-weight:600;cursor:pointer;padding:9px 13px;border-radius:9px;{{ navConfigStyle }}">Configurações</button>
+        </sc-if>
+      </nav>
+
+      <div style="margin-left:auto;display:flex;align-items:center;gap:16px">
+        <div style="display:flex;background:rgba(255,255,255,.07);border-radius:9px;padding:3px">
+          <button onClick="{{ setCliente }}" style="border:none;cursor:pointer;font-size:13px;font-weight:700;padding:6px 13px;border-radius:7px;{{ segClienteStyle }}">Cliente</button>
+          <button onClick="{{ setBarbearia }}" style="border:none;cursor:pointer;font-size:13px;font-weight:700;padding:6px 13px;border-radius:7px;{{ segBarbeariaStyle }}">Barbearia</button>
+        </div>
+        <sc-if value="{{ loggedIn }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:34px;height:34px;border-radius:50%;background:var(--accent);color:#25343F;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;font-family:'Archivo',sans-serif">{{ userInitials }}</div>
+            <button onClick="{{ logout }}" style="background:none;border:none;color:#9FB0B8;font-size:13px;font-weight:600;cursor:pointer">Sair</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ loggedOut }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ goAuth }}" style="background:var(--accent);color:#25343F;border:none;font-weight:700;font-size:14px;padding:9px 18px;border-radius:9px;cursor:pointer">Entrar</button>
+        </sc-if>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== TOAST ===== -->
+  <sc-if value="{{ toast }}" hint-placeholder-val="">
+    <div style="position:fixed;left:50%;bottom:28px;z-index:90;background:#25343F;color:#fff;padding:13px 22px;border-radius:11px;font-weight:600;font-size:14.5px;box-shadow:0 12px 32px rgba(37,52,63,.35);animation:vdbToast .3s ease;display:flex;align-items:center;gap:10px">
+      <span style="width:20px;height:20px;border-radius:50%;background:var(--accent);color:#25343F;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:13px">✓</span>{{ toast }}
+    </div>
+  </sc-if>
+
+  <main style="max-width:1200px;margin:0 auto;padding:36px 24px 80px">
+
+    <!-- ============ TELA 1 — HOME / BARBEARIAS ============ -->
+    <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+      <section>
+        <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:26px">
+          <div style="max-width:560px">
+            <div style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-d);margin-bottom:10px">Agende em segundos</div>
+            <h1 style="font-family:'Archivo',sans-serif;font-weight:800;font-size:38px;line-height:1.05;letter-spacing:-.025em;margin:0 0 10px">Encontre sua barbearia e marque o horário</h1>
+            <p style="margin:0;font-size:16px;color:#5C6B76;line-height:1.5">Escolha o serviço, o barbeiro e o melhor horário. Sem ligação, sem espera.</p>
+          </div>
+          <div style="position:relative;flex:1;min-width:280px;max-width:380px">
+            <input value="{{ query }}" onChange="{{ onQuery }}" placeholder="Buscar por nome, bairro ou serviço" style="width:100%;background:#fff;border:1px solid #DCE3E7;border-radius:12px;padding:14px 16px 14px 44px;font-size:15px;color:#25343F">
+            <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#9FB0B8;font-size:17px">⌕</span>
+          </div>
+        </div>
+
+        <div class="vdb-shops-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+          <sc-for list="{{ shopsVM }}" as="s" hint-placeholder-count="3">
+            <article style="background:#fff;border:1px solid #E3E9EC;border-radius:16px;overflow:hidden;display:flex;flex-direction:column">
+              <div style="height:120px;background:repeating-linear-gradient(45deg,#E6ECEF,#E6ECEF 11px,#EFF3F4 11px,#EFF3F4 22px);display:flex;align-items:center;justify-content:center;border-bottom:1px solid #E3E9EC">
+                <span style="font-family:'Archivo',monospace;font-size:11px;letter-spacing:.06em;color:#A8B6BC;text-transform:uppercase">foto da barbearia</span>
+              </div>
+              <div style="padding:18px;display:flex;flex-direction:column;gap:12px;flex:1">
+                <div>
+                  <h3 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:18px;margin:0 0 4px;letter-spacing:-.01em">{{ s.nome }}</h3>
+                  <div style="font-size:13.5px;color:#5C6B76;display:flex;align-items:center;gap:6px"><span style="color:var(--accent-d)">◉</span>{{ s.endereco }}</div>
+                </div>
+                <p style="margin:0;font-size:14px;color:#6B7A84;line-height:1.45;flex:1">{{ s.desc }}</p>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:6px;border-top:1px solid #EEF2F3">
+                  <div style="font-size:13px;color:#5C6B76">{{ s.servCount }} serviços · a partir de <strong style="color:#25343F">{{ s.priceFrom }}</strong></div>
+                </div>
+                <button onClick="{{ s.open }}" style="background:#25343F;color:#fff;border:none;font-weight:700;font-size:14.5px;padding:12px;border-radius:10px;cursor:pointer;width:100%">Ver e agendar</button>
+              </div>
+            </article>
+          </sc-for>
+        </div>
+        <sc-if value="{{ shopsEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;padding:60px;color:#8A98A0;font-size:15px">Nenhuma barbearia encontrada para “{{ query }}”.</div>
+        </sc-if>
+      </section>
+    </sc-if>
+
+    <!-- ============ TELA 2 — DETALHES + AGENDAMENTO ============ -->
+    <sc-if value="{{ isShop }}" hint-placeholder-val="{{ false }}">
+      <section>
+        <button onClick="{{ navHome }}" style="background:none;border:none;color:#5C6B76;font-size:14px;font-weight:600;cursor:pointer;padding:0;margin-bottom:18px">← Voltar para barbearias</button>
+
+        <div style="background:#fff;border:1px solid #E3E9EC;border-radius:18px;overflow:hidden;margin-bottom:22px">
+          <div style="height:150px;background:repeating-linear-gradient(45deg,#E6ECEF,#E6ECEF 12px,#EFF3F4 12px,#EFF3F4 24px);display:flex;align-items:center;justify-content:center">
+            <span style="font-family:'Archivo',monospace;font-size:11px;letter-spacing:.06em;color:#A8B6BC;text-transform:uppercase">foto / fachada da barbearia</span>
+          </div>
+          <div style="padding:22px 24px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between">
+            <div>
+              <h1 style="font-family:'Archivo',sans-serif;font-weight:800;font-size:28px;margin:0 0 6px;letter-spacing:-.02em">{{ shop.nome }}</h1>
+              <p style="margin:0 0 8px;color:#5C6B76;font-size:15px">{{ shop.desc }}</p>
+              <div style="display:flex;flex-wrap:wrap;gap:18px;font-size:13.5px;color:#6B7A84">
+                <span style="display:flex;align-items:center;gap:6px"><span style="color:var(--accent-d)">◉</span>{{ shop.endereco }}</span>
+                <span style="display:flex;align-items:center;gap:6px"><span style="color:var(--accent-d)">✆</span>{{ shop.tel }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="vdb-shop-grid" style="display:grid;grid-template-columns:2fr 1fr;gap:22px;align-items:start">
+          <!-- left: choices -->
+          <div style="display:flex;flex-direction:column;gap:24px">
+            <!-- services -->
+            <div>
+              <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px"><span style="width:24px;height:24px;border-radius:7px;background:var(--accent-soft);color:var(--accent-d);font-weight:800;font-size:13px;display:inline-flex;align-items:center;justify-content:center;font-family:'Archivo',sans-serif">1</span><h2 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:18px;margin:0;white-space:nowrap">Escolha o serviço</h2></div>
+              <div class="vdb-svc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <sc-for list="{{ shop.services }}" as="sv" hint-placeholder-count="4">
+                  <button onClick="{{ sv.select }}" style="text-align:left;cursor:pointer;border-radius:13px;padding:15px 16px;display:flex;flex-direction:column;gap:3px;transition:.12s;{{ sv.boxStyle }}">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span style="font-weight:700;font-size:15px;font-family:'Archivo',sans-serif">{{ sv.nome }}</span><span style="font-weight:800;font-size:15px;color:var(--accent-d);font-family:'Archivo',sans-serif">{{ sv.precoFmt }}</span></div>
+                    <span style="font-size:13px;color:#6B7A84">{{ sv.desc }}</span>
+                    <span style="font-size:12px;color:#94A2A9;font-weight:600;margin-top:2px">⏱ {{ sv.durLabel }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+            <!-- barbers -->
+            <div>
+              <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px"><span style="width:24px;height:24px;border-radius:7px;background:var(--accent-soft);color:var(--accent-d);font-weight:800;font-size:13px;display:inline-flex;align-items:center;justify-content:center;font-family:'Archivo',sans-serif">2</span><h2 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:18px;margin:0;white-space:nowrap">Escolha o barbeiro</h2></div>
+              <div style="display:flex;flex-wrap:wrap;gap:12px">
+                <sc-for list="{{ shop.barbers }}" as="b" hint-placeholder-count="2">
+                  <button onClick="{{ b.select }}" style="cursor:pointer;border-radius:13px;padding:13px 16px;display:flex;align-items:center;gap:11px;transition:.12s;{{ b.boxStyle }}">
+                    <span style="width:38px;height:38px;border-radius:50%;background:#25343F;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;font-family:'Archivo',sans-serif">{{ b.initials }}</span>
+                    <span style="text-align:left"><span style="display:block;font-weight:700;font-size:14.5px;font-family:'Archivo',sans-serif">{{ b.nome }}</span><span style="display:block;font-size:12.5px;color:#7B8990">{{ b.espec }}</span></span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+            <!-- date -->
+            <div>
+              <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px"><span style="width:24px;height:24px;border-radius:7px;background:var(--accent-soft);color:var(--accent-d);font-weight:800;font-size:13px;display:inline-flex;align-items:center;justify-content:center;font-family:'Archivo',sans-serif">3</span><h2 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:18px;margin:0;white-space:nowrap">Escolha a data</h2></div>
+              <div style="display:flex;flex-wrap:wrap;gap:9px">
+                <sc-for list="{{ shop.dateChips }}" as="d" hint-placeholder-count="8">
+                  <button onClick="{{ d.select }}" style="flex:none;width:62px;cursor:pointer;border-radius:12px;padding:11px 0;text-align:center;transition:.12s;{{ d.boxStyle }}">
+                    <span style="display:block;font-size:11.5px;font-weight:600;text-transform:uppercase;opacity:.8">{{ d.dow }}</span>
+                    <span style="display:block;font-size:20px;font-weight:800;font-family:'Archivo',sans-serif;line-height:1.2">{{ d.day }}</span>
+                    <span style="display:block;font-size:11px;opacity:.7">{{ d.mon }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+            <!-- time -->
+            <div>
+              <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px"><span style="width:24px;height:24px;border-radius:7px;background:var(--accent-soft);color:var(--accent-d);font-weight:800;font-size:13px;display:inline-flex;align-items:center;justify-content:center;font-family:'Archivo',sans-serif">4</span><h2 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:18px;margin:0;white-space:nowrap">Escolha o horário</h2></div>
+              <sc-if value="{{ shop.slotsReady }}" hint-placeholder-val="{{ false }}">
+                <div class="vdb-slot-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:9px">
+                  <sc-for list="{{ shop.slots }}" as="t" hint-placeholder-count="12">
+                    <button onClick="{{ t.select }}" disabled="{{ t.disabled }}" style="cursor:pointer;border-radius:9px;padding:11px 0;text-align:center;font-weight:700;font-size:14px;font-family:'Archivo',sans-serif;transition:.12s;{{ t.boxStyle }}">{{ t.label }}</button>
+                  </sc-for>
+                </div>
+                <sc-if value="{{ shop.slotsEmpty }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:22px;background:#fff;border:1px dashed #D2DCE0;border-radius:12px;text-align:center;color:#8A98A0;font-size:14px">Sem horários disponíveis neste dia. Tente outra data.</div>
+                </sc-if>
+              </sc-if>
+              <sc-if value="{{ shop.slotsHint }}" hint-placeholder-val="{{ true }}">
+                <div style="padding:22px;background:#fff;border:1px dashed #D2DCE0;border-radius:12px;text-align:center;color:#8A98A0;font-size:14px">Selecione um barbeiro e uma data para ver os horários.</div>
+              </sc-if>
+            </div>
+          </div>
+
+          <!-- right: summary -->
+          <aside style="position:sticky;top:88px;background:#fff;border:1px solid #E3E9EC;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:16px">
+            <h3 style="font-family:'Archivo',sans-serif;font-weight:800;font-size:17px;margin:0">Resumo do agendamento</h3>
+            <div style="display:flex;flex-direction:column;gap:11px">
+              <div style="display:flex;justify-content:space-between;gap:12px;font-size:14px"><span style="color:#7B8990">Serviço</span><span style="font-weight:600;text-align:right">{{ sumService }}</span></div>
+              <div style="display:flex;justify-content:space-between;gap:12px;font-size:14px"><span style="color:#7B8990">Barbeiro</span><span style="font-weight:600;text-align:right">{{ sumBarber }}</span></div>
+              <div style="display:flex;justify-content:space-between;gap:12px;font-size:14px"><span style="color:#7B8990">Data</span><span style="font-weight:600;text-align:right">{{ sumDate }}</span></div>
+              <div style="display:flex;justify-content:space-between;gap:12px;font-size:14px"><span style="color:#7B8990">Horário</span><span style="font-weight:600;text-align:right">{{ sumTime }}</span></div>
+            </div>
+            <div style="border-top:1px solid #EEF2F3;padding-top:14px;display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:14px;color:#7B8990">Total</span>
+              <span style="font-family:'Archivo',sans-serif;font-weight:800;font-size:24px;color:#25343F">{{ sumTotal }}</span>
+            </div>
+            <button onClick="{{ confirm }}" disabled="{{ confirmDisabled }}" style="border:none;font-weight:700;font-size:15.5px;padding:15px;border-radius:11px;cursor:pointer;transition:.12s;{{ confirmStyle }}">{{ confirmLabel }}</button>
+            <p style="margin:0;font-size:12px;color:#94A2A9;text-align:center">Pagamento presencial na barbearia.</p>
+          </aside>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- ============ TELA 3 — LOGIN / CADASTRO ============ -->
+    <sc-if value="{{ isAuth }}" hint-placeholder-val="{{ false }}">
+      <section style="max-width:440px;margin:24px auto 0">
+        <div style="background:#fff;border:1px solid #E3E9EC;border-radius:18px;padding:32px">
+          <div style="text-align:center;margin-bottom:22px">
+            <img src="{{ brandLogo }}" style="height:48px;margin-bottom:10px">
+            <h1 style="font-family:'Archivo',sans-serif;font-weight:800;font-size:24px;margin:0 0 4px;letter-spacing:-.02em">{{ authTitle }}</h1>
+            <p style="margin:0;color:#7B8990;font-size:14px">{{ authSubtitle }}</p>
+          </div>
+          <div style="display:flex;background:#F2F5F6;border-radius:11px;padding:4px;margin-bottom:22px">
+            <button onClick="{{ setLogin }}" style="flex:1;border:none;cursor:pointer;font-weight:700;font-size:14px;padding:10px;border-radius:8px;{{ tabLoginStyle }}">Entrar</button>
+            <button onClick="{{ setCadastro }}" style="flex:1;border:none;cursor:pointer;font-weight:700;font-size:14px;padding:10px;border-radius:8px;{{ tabCadastroStyle }}">Criar conta</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <sc-if value="{{ isCadastro }}" hint-placeholder-val="{{ false }}">
+              <div>
+                <label style="display:block;font-size:13px;font-weight:600;color:#5C6B76;margin-bottom:6px">Nome completo</label>
+                <input value="{{ afNome }}" onChange="{{ onAfNome }}" placeholder="Seu nome" style="width:100%;background:#fff;border:1px solid #DCE3E7;border-radius:10px;padding:12px 14px;font-size:15px;color:#25343F">
+              </div>
+              <div>
+                <label style="display:block;font-size:13px;font-weight:600;color:#5C6B76;margin-bottom:6px">Telefone</label>
+                <input value="{{ afPhone }}" onChange="{{ onAfPhone }}" placeholder="(11) 90000-0000" style="width:100%;background:#fff;border:1px solid #DCE3E7;border-radius:10px;padding:12px 14px;font-size:15px;color:#25343F">
+              </div>
+            </sc-if>
+            <div>
+              <label style="display:block;font-size:13px;font-weight:600;color:#5C6B76;margin-bottom:6px">E-mail</label>
+              <input value="{{ afEmail }}" onChange="{{ onAfEmail }}" placeholder="voce@email.com" style="width:100%;background:#fff;border:1px solid #DCE3E7;border-radius:10px;padding:12px 14px;font-size:15px;color:#25343F">
+            </div>
+            <div>
+              <label style="display:block;font-size:13px;font-weight:600;color:#5C6B76;margin-bottom:6px">Senha</label>
+              <input type="password" value="{{ afPass }}" onChange="{{ onAfPass }}" placeholder="••••••••" style="width:100%;background:#fff;border:1px solid #DCE3E7;border-radius:10px;padding:12px 14px;font-size:15px;color:#25343F">
+            </div>
+            <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ goForgot }}" style="align-self:flex-end;background:none;border:none;color:var(--accent-d);font-weight:700;font-size:13px;cursor:pointer;padding:0;margin-top:-6px">Esqueci minha senha</button>
+            </sc-if>
+            <sc-if value="{{ authError }}" hint-placeholder-val="">
+              <div style="background:#FBE9E7;color:#B33A2B;font-size:13px;font-weight:600;padding:10px 13px;border-radius:9px">{{ authError }}</div>
+            </sc-if>
+            <button onClick="{{ submitAuth }}" style="background:var(--accent);color:#25343F;border:none;font-weight:700;font-size:15.5px;padding:14px;border-radius:11px;cursor:pointer;margin-top:4px">{{ authCta }}</button>
+            <sc-if value="{{ pending }}" hint-placeholder-val="{{ false }}">
+              <p style="margin:0;text-align:center;font-size:13px;color:#7B8990">Entre para confirmar seu agendamento.</p>
+            </sc-if>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- ============ TELA 3B — RECUPERAR SENHA ============ -->
+    <sc-if value="{{ isForgot }}" hint-placeholder-val="{{ false }}">
+      <section style="max-width:440px;margin:24px auto 0">
+        <div style="background:#fff;border:1px solid #E3E9EC;border-radius:18px;padding:32px">
+          <div style="text-align:center;margin-bottom:22px">
+            <img src="{{ brandLogo }}" alt="VouDeBarba" style="height:48px;margin-bottom:10px">
+            <h1 style="font-family:'Archivo',sans-serif;font-weight:800;font-size:24px;margin:0 0 4px;letter-spacing:-.02em">{{ fgTitle }}</h1>
+            <p style="margin:0;color:#7B8990;font-size:14px;line-height:1.45">{{ fgSubtitle }}</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <sc-if value="{{ fgIsRequest }}" hint-placeholder-val="{{ true }}">
+              <div>
+                <label style="display:block;font-size:13px;font-weight:600;color:#5C6B76;margin-bottom:6px">E-mail da conta</label>
+                <input value="{{ fgEmail }}" onChange="{{ onFgEmail }}" placeholder="voce@email.com" style="width:100%;background:#fff;border:1px solid #DCE3E7;border-radius:10px;padding:12px 14px;font-size:15px;color:#25343F">
+              </div>
+              <sc-if value="{{ fgError }}" hint-placeholder-val="">
+                <div style="background:#FBE9E7;color:#B33A2B;font-size:13px;font-weight:600;padding:10px 13px;border-radius:9px">{{ fgError }}</div>
+              </sc-if>
+              <button onClick="{{ fgSend }}" style="background:var(--accent);color:#25343F;border:none;font-weight:700;font-size:15.5px;padding:14px;border-radius:11px;cursor:pointer;margin-top:4px">Enviar link de recuperação</button>
+            </sc-if>
+            <sc-if value="{{ fgIsSent }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#E2ECE6;color:#2E6A4C;font-size:13.5px;font-weight:600;padding:12px 14px;border-radius:10px;line-height:1.45">Se existir uma conta para este e-mail, o link de redefinição chegará em instantes.</div>
+              <button onClick="{{ fgOpenReset }}" style="background:var(--accent);color:#25343F;border:none;font-weight:700;font-size:15.5px;padding:14px;border-radius:11px;cursor:pointer;margin-top:4px">Abrir link de redefinição</button>
+              <button onClick="{{ fgRestart }}" style="background:none;border:none;color:var(--accent-d);font-weight:700;font-size:13px;cursor:pointer;padding:0">Usar outro e-mail</button>
+            </sc-if>
+            <sc-if value="{{ fgIsReset }}" hint-placeholder-val="{{ false }}">
+              <div>
+                <label style="display:block;font-size:13px;font-weight:600;color:#5C6B76;margin-bottom:6px">Nova senha</label>
+                <input type="password" value="{{ fgPass }}" onChange="{{ onFgPass }}" placeholder="••••••••" style="width:100%;background:#fff;border:1px solid #DCE3E7;border-radius:10px;padding:12px 14px;font-size:15px;color:#25343F">
+              </div>
+              <div>
+                <label style="display:block;font-size:13px;font-weight:600;color:#5C6B76;margin-bottom:6px">Confirmar nova senha</label>
+                <input type="password" value="{{ fgPass2 }}" onChange="{{ onFgPass2 }}" placeholder="••••••••" style="width:100%;background:#fff;border:1px solid #DCE3E7;border-radius:10px;padding:12px 14px;font-size:15px;color:#25343F">
+              </div>
+              <sc-if value="{{ fgError }}" hint-placeholder-val="">
+                <div style="background:#FBE9E7;color:#B33A2B;font-size:13px;font-weight:600;padding:10px 13px;border-radius:9px">{{ fgError }}</div>
+              </sc-if>
+              <button onClick="{{ fgSubmitReset }}" style="background:var(--accent);color:#25343F;border:none;font-weight:700;font-size:15.5px;padding:14px;border-radius:11px;cursor:pointer;margin-top:4px">Redefinir senha</button>
+            </sc-if>
+            <sc-if value="{{ fgIsDone }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#E2ECE6;color:#2E6A4C;font-size:14px;font-weight:600;padding:14px;border-radius:10px;text-align:center;line-height:1.45">Senha redefinida com sucesso. Use a nova senha para entrar.</div>
+              <button onClick="{{ fgBackToLogin }}" style="background:var(--accent);color:#25343F;border:none;font-weight:700;font-size:15.5px;padding:14px;border-radius:11px;cursor:pointer;margin-top:4px">Voltar para entrar</button>
+            </sc-if>
+            <sc-if value="{{ fgShowBack }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ fgBackToLogin }}" style="background:none;border:none;color:#7B8990;font-weight:700;font-size:13px;cursor:pointer;padding:0;text-align:center">← Voltar para o login</button>
+            </sc-if>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- ============ TELA 4 — MEUS AGENDAMENTOS ============ -->
+    <sc-if value="{{ isAppts }}" hint-placeholder-val="{{ false }}">
+      <section>
+        <h1 style="font-family:'Archivo',sans-serif;font-weight:800;font-size:30px;margin:0 0 4px;letter-spacing:-.02em">Meus agendamentos</h1>
+        <p style="margin:0 0 26px;color:#5C6B76;font-size:15px">Acompanhe seus horários e cancele quando precisar.</p>
+
+        <h2 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:16px;margin:0 0 13px;color:#25343F">Próximos</h2>
+        <sc-if value="{{ hasUpcoming }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:32px">
+            <sc-for list="{{ upcoming }}" as="a" hint-placeholder-count="2">
+              <article style="background:#fff;border:1px solid #E3E9EC;border-radius:14px;padding:18px 20px;display:flex;flex-wrap:wrap;align-items:center;gap:16px">
+                <div style="width:54px;height:54px;border-radius:12px;background:var(--accent-soft);color:var(--accent-d);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none;font-family:'Archivo',sans-serif"><span style="font-size:18px;font-weight:800;line-height:1">{{ a.dayNum }}</span><span style="font-size:11px;font-weight:700;text-transform:uppercase">{{ a.monShort }}</span></div>
+                <div style="flex:1;min-width:180px">
+                  <div style="font-family:'Archivo',sans-serif;font-weight:700;font-size:16px;margin-bottom:3px">{{ a.serviceNome }}</div>
+                  <div style="font-size:13.5px;color:#6B7A84">{{ a.shopNome }} · {{ a.barberNome }}</div>
+                </div>
+                <div style="text-align:right"><div style="font-weight:700;font-size:15px;font-family:'Archivo',sans-serif">{{ a.dateLabel }}</div><div style="font-size:13.5px;color:#6B7A84">{{ a.timeLabel }} · {{ a.priceFmt }}</div></div>
+                <span style="display:inline-block;padding:5px 11px;border-radius:999px;font-size:12px;font-weight:700;{{ a.badgeStyle }}">{{ a.statusLabel }}</span>
+                <button onClick="{{ a.cancel }}" style="background:#fff;border:1px solid #E3D0CB;color:#B33A2B;font-weight:700;font-size:13px;padding:9px 15px;border-radius:9px;cursor:pointer">Cancelar</button>
+              </article>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noUpcoming }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#fff;border:1px dashed #D2DCE0;border-radius:14px;padding:36px;text-align:center;margin-bottom:32px">
+            <p style="margin:0 0 14px;color:#7B8990;font-size:15px">Você ainda não tem horários marcados.</p>
+            <button onClick="{{ navHome }}" style="background:#25343F;color:#fff;border:none;font-weight:700;font-size:14px;padding:11px 20px;border-radius:10px;cursor:pointer">Buscar barbearias</button>
+          </div>
+        </sc-if>
+
+        <h2 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:16px;margin:0 0 13px;color:#25343F">Histórico</h2>
+        <sc-if value="{{ hasPast }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ past }}" as="a" hint-placeholder-count="2">
+              <article style="background:#fff;border:1px solid #EEF2F3;border-radius:14px;padding:14px 20px;display:flex;flex-wrap:wrap;align-items:center;gap:16px;opacity:.92">
+                <div style="flex:1;min-width:180px"><div style="font-weight:700;font-size:15px;font-family:'Archivo',sans-serif">{{ a.serviceNome }}</div><div style="font-size:13px;color:#8A98A0">{{ a.shopNome }} · {{ a.barberNome }}</div></div>
+                <div style="font-size:13.5px;color:#6B7A84">{{ a.dateLabel }} · {{ a.timeLabel }}</div>
+                <span style="display:inline-block;padding:5px 11px;border-radius:999px;font-size:12px;font-weight:700;{{ a.badgeStyle }}">{{ a.statusLabel }}</span>
+              </article>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noPast }}" hint-placeholder-val="{{ false }}">
+          <div style="color:#8A98A0;font-size:14px;padding:8px 2px">Nenhum atendimento no histórico ainda.</div>
+        </sc-if>
+      </section>
+    </sc-if>
+
+    <!-- ============ TELA 5 — PAINEL / AGENDA ============ -->
+    <sc-if value="{{ isAgenda }}" hint-placeholder-val="{{ false }}">
+      <section>
+        <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px">
+          <div>
+            <h1 style="font-family:'Archivo',sans-serif;font-weight:800;font-size:30px;margin:0 0 4px;letter-spacing:-.02em">Agenda — {{ agShopNome }}</h1>
+            <p style="margin:0;color:#5C6B76;font-size:15px">Acompanhe os atendimentos do dia e atualize o status.</p>
+          </div>
+          <div style="display:flex;gap:12px">
+            <div style="background:#fff;border:1px solid #E3E9EC;border-radius:12px;padding:11px 16px;text-align:center;min-width:74px"><div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:22px">{{ agTotal }}</div><div style="font-size:11.5px;color:#7B8990;font-weight:600">no dia</div></div>
+            <div style="background:#fff;border:1px solid #E3E9EC;border-radius:12px;padding:11px 16px;text-align:center;min-width:74px"><div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:22px;color:var(--accent-d)">{{ agAgendados }}</div><div style="font-size:11.5px;color:#7B8990;font-weight:600">a atender</div></div>
+            <div style="background:#fff;border:1px solid #E3E9EC;border-radius:12px;padding:11px 16px;text-align:center;min-width:74px"><div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:22px;color:#2E6A4C">{{ agRealizados }}</div><div style="font-size:11.5px;color:#7B8990;font-weight:600">feitos</div></div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:9px;overflow-x:auto;padding-bottom:6px;margin-bottom:22px">
+          <sc-for list="{{ agDateChips }}" as="d" hint-placeholder-count="7">
+            <button onClick="{{ d.select }}" style="flex:none;width:64px;cursor:pointer;border-radius:12px;padding:11px 0;text-align:center;transition:.12s;{{ d.boxStyle }}">
+              <span style="display:block;font-size:11.5px;font-weight:600;text-transform:uppercase;opacity:.8">{{ d.dow }}</span>
+              <span style="display:block;font-size:20px;font-weight:800;font-family:'Archivo',sans-serif;line-height:1.2">{{ d.day }}</span>
+              <span style="display:block;font-size:11px;opacity:.7">{{ d.mon }}</span>
+            </button>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ agHasList }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ agList }}" as="a" hint-placeholder-count="4">
+              <article style="background:#fff;border:1px solid #E3E9EC;border-radius:14px;padding:16px 20px;display:flex;flex-wrap:wrap;align-items:center;gap:16px">
+                <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:20px;width:62px;flex:none">{{ a.timeLabel }}</div>
+                <div style="width:1px;height:38px;background:#EEF2F3;flex:none"></div>
+                <div style="flex:1;min-width:170px"><div style="font-family:'Archivo',sans-serif;font-weight:700;font-size:16px;margin-bottom:2px">{{ a.client }}</div><div style="font-size:13.5px;color:#6B7A84">{{ a.serviceNome }} · {{ a.barberNome }}</div></div>
+                <span style="display:inline-block;padding:5px 11px;border-radius:999px;font-size:12px;font-weight:700;{{ a.badgeStyle }}">{{ a.statusLabel }}</span>
+                <sc-if value="{{ a.showActions }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;gap:8px">
+                    <button onClick="{{ a.markDone }}" style="background:#25343F;color:#fff;border:none;font-weight:700;font-size:13px;padding:9px 14px;border-radius:9px;cursor:pointer">Concluir</button>
+                    <button onClick="{{ a.markCancel }}" style="background:#fff;border:1px solid #E3D0CB;color:#B33A2B;font-weight:700;font-size:13px;padding:9px 14px;border-radius:9px;cursor:pointer">Cancelar</button>
+                  </div>
+                </sc-if>
+              </article>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ agEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#fff;border:1px dashed #D2DCE0;border-radius:14px;padding:46px;text-align:center;color:#8A98A0;font-size:15px">Nenhum atendimento agendado para este dia.</div>
+        </sc-if>
+      </section>
+    </sc-if>
+
+    <!-- ============ TELA 6 — CONFIGURAÇÕES ============ -->
+    <sc-if value="{{ isConfig }}" hint-placeholder-val="{{ false }}">
+      <section>
+        <h1 style="font-family:'Archivo',sans-serif;font-weight:800;font-size:30px;margin:0 0 4px;letter-spacing:-.02em">Configurações da barbearia</h1>
+        <p style="margin:0 0 24px;color:#5C6B76;font-size:15px">Dados, serviços, barbeiros e horários de funcionamento.</p>
+
+        <div class="vdb-cfg-grid" style="display:grid;grid-template-columns:210px 1fr;gap:24px;align-items:start">
+          <nav style="background:#fff;border:1px solid #E3E9EC;border-radius:14px;padding:8px;display:flex;flex-direction:column;gap:2px;position:sticky;top:88px">
+            <button onClick="{{ tabDados }}" style="text-align:left;border:none;cursor:pointer;font-weight:600;font-size:14.5px;padding:11px 14px;border-radius:9px;{{ tabDadosStyle }}">Dados gerais</button>
+            <button onClick="{{ tabServicos }}" style="text-align:left;border:none;cursor:pointer;font-weight:600;font-size:14.5px;padding:11px 14px;border-radius:9px;{{ tabServicosStyle }}">Serviços</button>
+            <button onClick="{{ tabBarbeiros }}" style="text-align:left;border:none;cursor:pointer;font-weight:600;font-size:14.5px;padding:11px 14px;border-radius:9px;{{ tabBarbeirosStyle }}">Barbeiros</button>
+            <button onClick="{{ tabHorarios }}" style="text-align:left;border:none;cursor:pointer;font-weight:600;font-size:14.5px;padding:11px 14px;border-radius:9px;{{ tabHorariosStyle }}">Horários</button>
+          </nav>
+
+          <div style="background:#fff;border:1px solid #E3E9EC;border-radius:16px;padding:26px;min-height:360px">
+            <!-- DADOS -->
+            <sc-if value="{{ cfgDados }}" hint-placeholder-val="{{ true }}">
+              <h2 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:18px;margin:0 0 18px">Dados gerais</h2>
+              <div style="display:flex;flex-direction:column;gap:16px;max-width:520px">
+                <div><label style="display:block;font-size:13px;font-weight:600;color:#5C6B76;margin-bottom:6px">Nome da barbearia</label><input value="{{ cfgNome }}" onChange="{{ onCfgNome }}" style="width:100%;background:#fff;border:1px solid #DCE3E7;border-radius:10px;padding:12px 14px;font-size:15px;color:#25343F"></div>
+                <div><label style="display:block;font-size:13px;font-weight:600;color:#5C6B76;margin-bottom:6px">Descrição</label><textarea value="{{ cfgDesc }}" onChange="{{ onCfgDesc }}" rows="3" style="width:100%;background:#fff;border:1px solid #DCE3E7;border-radius:10px;padding:12px 14px;font-size:15px;color:#25343F;resize:vertical"></textarea></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                  <div><label style="display:block;font-size:13px;font-weight:600;color:#5C6B76;margin-bottom:6px">Telefone</label><input value="{{ cfgTel }}" onChange="{{ onCfgTel }}" style="width:100%;background:#fff;border:1px solid #DCE3E7;border-radius:10px;padding:12px 14px;font-size:15px;color:#25343F"></div>
+                  <div><label style="display:block;font-size:13px;font-weight:600;color:#5C6B76;margin-bottom:6px">Endereço</label><input value="{{ cfgEnd }}" onChange="{{ onCfgEnd }}" style="width:100%;background:#fff;border:1px solid #DCE3E7;border-radius:10px;padding:12px 14px;font-size:15px;color:#25343F"></div>
+                </div>
+                <button onClick="{{ saveCfg }}" style="align-self:flex-start;background:var(--accent);color:#25343F;border:none;font-weight:700;font-size:14.5px;padding:12px 22px;border-radius:10px;cursor:pointer;margin-top:4px">Salvar alterações</button>
+              </div>
+            </sc-if>
+
+            <!-- SERVIÇOS -->
+            <sc-if value="{{ cfgServicos }}" hint-placeholder-val="{{ false }}">
+              <h2 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:18px;margin:0 0 18px">Serviços</h2>
+              <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:20px">
+                <sc-for list="{{ servicesAll }}" as="sv" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:14px;padding:13px 16px;border:1px solid #EEF2F3;border-radius:11px">
+                    <div style="flex:1"><div style="font-weight:700;font-size:15px;font-family:'Archivo',sans-serif">{{ sv.nome }}</div><div style="font-size:13px;color:#7B8990">⏱ {{ sv.durLabel }}</div></div>
+                    <div style="font-weight:800;font-size:15px;color:var(--accent-d);font-family:'Archivo',sans-serif">{{ sv.precoFmt }}</div>
+                    <button onClick="{{ sv.remove }}" style="background:none;border:none;color:#B33A2B;font-weight:700;font-size:13px;cursor:pointer">Remover</button>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="background:#F7FAFA;border:1px solid #EEF2F3;border-radius:12px;padding:16px">
+                <div style="font-weight:700;font-size:14px;margin-bottom:12px;font-family:'Archivo',sans-serif">Adicionar serviço</div>
+                <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end">
+                  <div style="flex:2;min-width:160px"><label style="display:block;font-size:12px;font-weight:600;color:#7B8990;margin-bottom:5px">Nome</label><input value="{{ svcNome }}" onChange="{{ onSvcNome }}" placeholder="Ex.: Corte degradê" style="width:100%;background:#fff;border:1px solid #DCE3E7;border-radius:9px;padding:10px 12px;font-size:14px"></div>
+                  <div style="flex:1;min-width:90px"><label style="display:block;font-size:12px;font-weight:600;color:#7B8990;margin-bottom:5px">Preço (R$)</label><input value="{{ svcPreco }}" onChange="{{ onSvcPreco }}" placeholder="45" style="width:100%;background:#fff;border:1px solid #DCE3E7;border-radius:9px;padding:10px 12px;font-size:14px"></div>
+                  <div style="flex:1;min-width:90px"><label style="display:block;font-size:12px;font-weight:600;color:#7B8990;margin-bottom:5px">Duração (min)</label><input value="{{ svcDur }}" onChange="{{ onSvcDur }}" placeholder="30" style="width:100%;background:#fff;border:1px solid #DCE3E7;border-radius:9px;padding:10px 12px;font-size:14px"></div>
+                  <button onClick="{{ addService }}" style="background:#25343F;color:#fff;border:none;font-weight:700;font-size:14px;padding:11px 18px;border-radius:9px;cursor:pointer">Adicionar</button>
+                </div>
+              </div>
+            </sc-if>
+
+            <!-- BARBEIROS -->
+            <sc-if value="{{ cfgBarbeiros }}" hint-placeholder-val="{{ false }}">
+              <h2 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:18px;margin:0 0 18px">Barbeiros</h2>
+              <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:20px">
+                <sc-for list="{{ barbersAll }}" as="b" hint-placeholder-count="2">
+                  <div style="display:flex;align-items:center;gap:13px;padding:12px 16px;border:1px solid #EEF2F3;border-radius:11px">
+                    <span style="width:40px;height:40px;border-radius:50%;background:#25343F;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;font-family:'Archivo',sans-serif">{{ b.initials }}</span>
+                    <div style="flex:1"><div style="font-weight:700;font-size:15px;font-family:'Archivo',sans-serif">{{ b.nome }}</div><div style="font-size:13px;color:#7B8990">{{ b.espec }}</div></div>
+                    <button onClick="{{ b.remove }}" style="background:none;border:none;color:#B33A2B;font-weight:700;font-size:13px;cursor:pointer">Remover</button>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="background:#F7FAFA;border:1px solid #EEF2F3;border-radius:12px;padding:16px;display:flex;gap:10px;align-items:flex-end">
+                <div style="flex:1"><label style="display:block;font-size:12px;font-weight:600;color:#7B8990;margin-bottom:5px">Nome do barbeiro</label><input value="{{ barberFormVal }}" onChange="{{ onBarberForm }}" placeholder="Nome completo" style="width:100%;background:#fff;border:1px solid #DCE3E7;border-radius:9px;padding:10px 12px;font-size:14px"></div>
+                <button onClick="{{ addBarber }}" style="background:#25343F;color:#fff;border:none;font-weight:700;font-size:14px;padding:11px 18px;border-radius:9px;cursor:pointer">Adicionar</button>
+              </div>
+            </sc-if>
+
+            <!-- HORÁRIOS -->
+            <sc-if value="{{ cfgHorarios }}" hint-placeholder-val="{{ false }}">
+              <h2 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:18px;margin:0 0 6px">Horários de funcionamento</h2>
+              <p style="margin:0 0 18px;font-size:13.5px;color:#7B8990">Os horários disponíveis para agendamento são gerados a partir destes intervalos.</p>
+              <div style="display:flex;flex-direction:column;gap:8px;max-width:520px">
+                <sc-for list="{{ horariosList }}" as="h" hint-placeholder-count="7">
+                  <div style="display:flex;align-items:center;gap:14px;padding:11px 16px;border:1px solid #EEF2F3;border-radius:11px;{{ h.rowStyle }}">
+                    <button onClick="{{ h.toggle }}" style="border:none;cursor:pointer;width:42px;height:24px;border-radius:999px;flex:none;position:relative;transition:.15s;{{ h.switchStyle }}"><span style="position:absolute;top:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.15s;{{ h.knobStyle }}"></span></button>
+                    <div style="width:90px;font-weight:700;font-size:14.5px;font-family:'Archivo',sans-serif">{{ h.dayLabel }}</div>
+                    <sc-if value="{{ h.on }}" hint-placeholder-val="{{ true }}">
+                      <div style="display:flex;align-items:center;gap:8px">
+                        <input type="time" value="{{ h.a }}" onChange="{{ h.onA }}" style="background:#fff;border:1px solid #DCE3E7;border-radius:8px;padding:7px 10px;font-size:14px;color:#25343F">
+                        <span style="color:#94A2A9">até</span>
+                        <input type="time" value="{{ h.f }}" onChange="{{ h.onF }}" style="background:#fff;border:1px solid #DCE3E7;border-radius:8px;padding:7px 10px;font-size:14px;color:#25343F">
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ h.off }}" hint-placeholder-val="{{ false }}">
+                      <span style="color:#94A2A9;font-size:14px;font-weight:600">Fechado</span>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:820},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#FF9B51&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;defaultRole&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;cliente&quot;,&quot;barbearia&quot;],&quot;default&quot;:&quot;cliente&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;seedSample&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.DOWS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    this.DOWS_FULL=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+    this.MONS=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const seed=this.seedData();
+    const role=(props&&props.defaultRole==='barbearia')?'barbearia':'cliente';
+    this.state={
+      screen: role==='barbearia'?'agenda':'home',
+      role,
+      user:null,
+      authMode:'login',
+      af:{nome:'',email:'',phone:'',pass:''},
+      authError:'',
+      fg:{step:'request',email:'',pass:'',pass2:'',error:''},
+      query:'',
+      selShop:null,
+      dService:null,dBarber:null,dDate:null,dTime:null,
+      pending:false,
+      agShop:1,
+      agDate:this.isoLocal(new Date()),
+      cfgTab:'dados',
+      svcForm:{nome:'',preco:'',dur:'30'},
+      barberForm:'',
+      shops:seed.shops,
+      appts:(props&&props.seedSample===false)?[]:seed.appts,
+      toast:'',
+    };
+  }
+  /* ---------- utils ---------- */
+  isoLocal(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  addDays(n){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+n);return d;}
+  toMin(t){const p=t.split(':');return (+p[0])*60+(+p[1]);}
+  toHHMM(m){return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
+  dow(iso){return new Date(iso+'T12:00:00').getDay();}
+  fmtDate(iso){const d=new Date(iso+'T12:00:00');return this.DOWS[d.getDay()]+', '+String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');}
+  money(n){return 'R$ '+Number(n).toFixed(2).replace('.',',');}
+  initials(n){return n.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();}
+  findShop(id){return this.state.shops.find(s=>s.id===id);}
+  hexRgb(h){h=h.replace('#','');return [0,2,4].map(i=>parseInt(h.substr(i,2),16));}
+  shade(h,p){if(!h||h[0]!=='#')return h;const c=this.hexRgb(h),f=1+p/100;const g=x=>Math.max(0,Math.min(255,Math.round(x*f)));return 'rgb('+g(c[0])+','+g(c[1])+','+g(c[2])+')';}
+  tint(h,t){if(!h||h[0]!=='#')return h;const c=this.hexRgb(h),g=x=>Math.round(x+(255-x)*t);return 'rgb('+g(c[0])+','+g(c[1])+','+g(c[2])+')';}
+  applyAccent(){const a=this.props.accent||'#FF9B51';const de=document.documentElement;de.style.setProperty('--accent',a);de.style.setProperty('--accent-d',this.shade(a,-20));de.style.setProperty('--accent-soft',this.tint(a,0.82));}
+  componentDidMount(){this.applyAccent();}
+  componentDidUpdate(p){if(p.accent!==this.props.accent)this.applyAccent();}
+
+  /* ---------- seed ---------- */
+  baseHor(){return {0:{on:false,a:'09:00',f:'18:00'},1:{on:true,a:'09:00',f:'19:00'},2:{on:true,a:'09:00',f:'19:00'},3:{on:true,a:'09:00',f:'19:00'},4:{on:true,a:'09:00',f:'19:00'},5:{on:true,a:'09:00',f:'20:00'},6:{on:true,a:'09:00',f:'17:00'}};}
+  seedData(){
+    const H=()=>JSON.parse(JSON.stringify(this.baseHor()));
+    const shops=[
+      {id:1,nome:'Barbearia Dom Bigode',desc:'Tradição e navalha no coração da cidade.',endereco:'Rua Augusta, 1200 — Centro',tel:'(11) 4002-1100',horarios:H(),
+        services:[{id:1,nome:'Corte Masculino',desc:'Máquina e tesoura, lavagem inclusa',preco:45,dur:30,ativo:true},{id:2,nome:'Barba Completa',desc:'Toalha quente e navalha',preco:35,dur:30,ativo:true},{id:3,nome:'Corte + Barba',desc:'O combo completo',preco:70,dur:60,ativo:true},{id:4,nome:'Pezinho',desc:'Acabamento de contorno',preco:20,dur:15,ativo:true}],
+        barbers:[{id:1,nome:'Rafael Mendes',espec:'Cortes clássicos'},{id:2,nome:'Tiago Alves',espec:'Barba e navalha'}]},
+      {id:2,nome:'Navalha & Cia',desc:'Barbearia premium com barboterapia.',endereco:'Av. Paulista, 800 — Bela Vista',tel:'(11) 4002-2200',horarios:H(),
+        services:[{id:1,nome:'Corte Navalhado',desc:'Degradê finalizado na navalha',preco:50,dur:40,ativo:true},{id:2,nome:'Barboterapia',desc:'Ritual de barba premium',preco:45,dur:45,ativo:true},{id:3,nome:'Corte + Barba',desc:'Pacote assinatura',preco:85,dur:75,ativo:true},{id:4,nome:'Platinado',desc:'Descoloração e tonalização',preco:160,dur:120,ativo:true}],
+        barbers:[{id:1,nome:'Bruno Costa',espec:'Degradês'},{id:2,nome:'Léo Farias',espec:'Coloração'}]},
+      {id:3,nome:'Old School Barber Club',desc:'Cortes clássicos para toda a família.',endereco:'Rua dos Pinheiros, 45 — Pinheiros',tel:'(11) 4002-3300',horarios:H(),
+        services:[{id:1,nome:'Corte Clássico',desc:'Tesoura e máquina',preco:40,dur:30,ativo:true},{id:2,nome:'Barba',desc:'Aparo e desenho',preco:30,dur:30,ativo:true},{id:3,nome:'Corte Infantil',desc:'Até 10 anos',preco:35,dur:30,ativo:true},{id:4,nome:'Sobrancelha',desc:'Limpeza e design',preco:15,dur:15,ativo:true}],
+        barbers:[{id:1,nome:'Daniel Rocha',espec:'Old school'},{id:2,nome:'Igor Nunes',espec:'Infantil'}]},
+      {id:4,nome:'Studio Corte Fino',desc:'Estilo e precisão em cada corte.',endereco:'Al. Santos, 300 — Jardins',tel:'(11) 4002-4400',horarios:H(),
+        services:[{id:1,nome:'Corte Premium',desc:'Consultoria de estilo',preco:60,dur:45,ativo:true},{id:2,nome:'Barba Desenhada',desc:'Modelagem detalhada',preco:40,dur:30,ativo:true},{id:3,nome:'Corte + Barba VIP',desc:'Experiência completa',preco:95,dur:75,ativo:true}],
+        barbers:[{id:1,nome:'Henrique Sá',espec:'Premium'},{id:2,nome:'Vitor Lima',espec:'Barba'}]},
+    ];
+    const today=this.isoLocal(this.addDays(0));
+    const tomo=this.isoLocal(this.addDays(1));
+    const past=this.isoLocal(this.addDays(-4));
+    const appts=[
+      {id:101,shopId:1,barberId:1,serviceId:1,client:'Marcos Lima',date:today,time:'09:00',status:'agendado'},
+      {id:102,shopId:1,barberId:2,serviceId:3,client:'João Pereira',date:today,time:'10:30',status:'agendado'},
+      {id:103,shopId:1,barberId:1,serviceId:2,client:'Você',date:today,time:'15:00',status:'agendado'},
+      {id:104,shopId:1,barberId:2,serviceId:1,client:'Felipe Souza',date:today,time:'16:30',status:'agendado'},
+      {id:105,shopId:1,barberId:1,serviceId:4,client:'André Melo',date:today,time:'11:30',status:'realizado'},
+      {id:106,shopId:1,barberId:1,serviceId:3,client:'Carlos Dias',date:tomo,time:'14:00',status:'agendado'},
+      {id:107,shopId:2,barberId:1,serviceId:3,client:'Você',date:past,time:'14:00',status:'realizado'},
+    ];
+    return {shops,appts};
+  }
+
+  /* ---------- actions ---------- */
+  nav(s){this.setState({screen:s});try{window.scrollTo(0,0);}catch(e){}}
+  setRole(r){this.setState({role:r,screen:r==='barbearia'?'agenda':'home'});try{window.scrollTo(0,0);}catch(e){}}
+  openShop(id){this.setState({screen:'shop',selShop:id,dService:null,dBarber:null,dDate:null,dTime:null});try{window.scrollTo(0,0);}catch(e){}}
+  finalize(){this.setState(s=>{const id=Math.max(100,...s.appts.map(a=>a.id))+1;const appt={id,shopId:s.selShop,barberId:s.dBarber,serviceId:s.dService,client:'Você',date:s.dDate,time:s.dTime,status:'agendado'};return{appts:[...s.appts,appt],dService:null,dBarber:null,dDate:null,dTime:null,screen:'appts',role:'cliente',pending:false,toast:'Agendamento confirmado!'};});this.clearToast();try{window.scrollTo(0,0);}catch(e){}}
+  confirm(){const s=this.state;if(!(s.dService&&s.dBarber&&s.dDate&&s.dTime))return;if(!s.user){this.setState({pending:true,screen:'auth',authMode:'login',authError:''});try{window.scrollTo(0,0);}catch(e){}return;}this.finalize();}
+  clearToast(){clearTimeout(this._t);this._t=setTimeout(()=>this.setState({toast:''}),3200);}
+  setAf(k,v){this.setState(s=>({af:{...s.af,[k]:v},authError:''}));}
+  setFg(k,v){this.setState(s=>({fg:{...s.fg,[k]:v,error:''}}));}
+  fgSend(){const e=this.state.fg.email;if(!/\S+@\S+\.\S+/.test(e)){this.setState(s=>({fg:{...s.fg,error:'Informe um e-mail válido.'}}));return;}this.setState(s=>({fg:{...s.fg,step:'sent',error:''}}));}
+  fgSubmitReset(){const{pass,pass2}=this.state.fg;if(pass.length<6){this.setState(s=>({fg:{...s.fg,error:'A senha deve ter pelo menos 6 caracteres.'}}));return;}if(pass!==pass2){this.setState(s=>({fg:{...s.fg,error:'As senhas não conferem.'}}));return;}this.setState(s=>({fg:{...s.fg,step:'done',error:''}}));}
+  submitAuth(){const{af,authMode,pending}=this.state;if(authMode==='cadastro'){if(!af.nome||!af.email||!af.pass){this.setState({authError:'Preencha nome, e-mail e senha.'});return;}}else{if(!af.email||!af.pass){this.setState({authError:'Informe e-mail e senha.'});return;}}const user={nome:af.nome||'Você',email:af.email};this.setState({user,af:{nome:'',email:'',phone:'',pass:''},authError:''});if(pending){this.finalize();}else{this.setState({screen:'appts',role:'cliente'});try{window.scrollTo(0,0);}catch(e){}}}
+  logout(){this.setState({user:null,screen:'home',role:'cliente'});}
+  setStatus(id,st){this.setState(s=>({appts:s.appts.map(a=>a.id===id?{...a,status:st}:a)}));}
+  updateShop(patch){this.setState(s=>({shops:s.shops.map(sh=>sh.id===s.agShop?{...sh,...patch}:sh)}));}
+  addService(){const sh=this.findShop(this.state.agShop);const f=this.state.svcForm;if(!f.nome.trim())return;const id=Math.max(0,...sh.services.map(x=>x.id))+1;this.updateShop({services:[...sh.services,{id,nome:f.nome.trim(),desc:'',preco:Number(f.preco)||0,dur:Number(f.dur)||30,ativo:true}]});this.setState({svcForm:{nome:'',preco:'',dur:'30'},toast:'Serviço adicionado.'});this.clearToast();}
+  removeService(id){const sh=this.findShop(this.state.agShop);this.updateShop({services:sh.services.filter(x=>x.id!==id)});}
+  addBarber(){const sh=this.findShop(this.state.agShop);const n=this.state.barberForm.trim();if(!n)return;const id=Math.max(0,...sh.barbers.map(x=>x.id))+1;this.updateShop({barbers:[...sh.barbers,{id,nome:n,espec:'Barbeiro'}]});this.setState({barberForm:'',toast:'Barbeiro adicionado.'});this.clearToast();}
+  removeBarber(id){const sh=this.findShop(this.state.agShop);this.updateShop({barbers:sh.barbers.filter(x=>x.id!==id)});}
+  toggleHor(dw){const sh=this.findShop(this.state.agShop);this.updateShop({horarios:{...sh.horarios,[dw]:{...sh.horarios[dw],on:!sh.horarios[dw].on}}});}
+  setHor(dw,f,v){const sh=this.findShop(this.state.agShop);this.updateShop({horarios:{...sh.horarios,[dw]:{...sh.horarios[dw],[f]:v}}});}
+
+  /* ---------- view models ---------- */
+  buildChips(count,sel,onSel,shop){
+    const out=[];
+    for(let i=0;i<count;i++){const d=this.addDays(i);const iso=this.isoLocal(d);const dw=d.getDay();let closed=false;if(shop){const h=shop.horarios[dw];closed=!h||!h.on;}const selected=sel===iso;
+      out.push({iso,dow:this.DOWS[dw],day:String(d.getDate()).padStart(2,'0'),mon:this.MONS[d.getMonth()],selected,closed,
+        select:()=>{if(!closed)onSel(iso);},
+        boxStyle:selected?'background:#25343F;color:#fff;border:1px solid #25343F;':(closed?'background:#F2F5F6;color:#B6C2C8;border:1px solid #E8EDEF;cursor:not-allowed;':'background:#fff;color:#25343F;border:1px solid #E3E9EC;')});}
+    return out;
+  }
+  slotsFor(shop,barberId,iso){
+    if(!shop||!barberId||!iso)return [];
+    const h=shop.horarios[this.dow(iso)];if(!h||!h.on)return [];
+    const taken=new Set(this.state.appts.filter(a=>a.shopId===shop.id&&a.barberId===barberId&&a.date===iso&&a.status!=='cancelado').map(a=>a.time));
+    const out=[];for(let m=this.toMin(h.a);m<this.toMin(h.f);m+=30){const t=this.toHHMM(m);out.push({t,taken:taken.has(t)});}
+    return out;
+  }
+  apptVM(a){
+    const sh=this.findShop(a.shopId)||{services:[],barbers:[],nome:''};
+    const sv=sh.services.find(x=>x.id===a.serviceId)||{nome:'Serviço',preco:0};
+    const b=sh.barbers.find(x=>x.id===a.barberId)||{nome:'Barbeiro'};
+    const badge={agendado:'background:#FFE7D2;color:#9A4E16;',realizado:'background:#E2ECE6;color:#2E6A4C;',cancelado:'background:#ECEFF1;color:#7B8990;'};
+    const label={agendado:'Agendado',realizado:'Realizado',cancelado:'Cancelado'};
+    const d=new Date(a.date+'T12:00:00');
+    return {id:a.id,status:a.status,shopNome:sh.nome,serviceNome:sv.nome,barberNome:b.nome,priceFmt:this.money(sv.preco),
+      dateLabel:this.fmtDate(a.date),timeLabel:a.time,dayNum:String(d.getDate()).padStart(2,'0'),monShort:this.MONS[d.getMonth()],
+      statusLabel:label[a.status],badgeStyle:badge[a.status]};
+  }
+
+  renderVals(){
+    const s=this.state;
+    const navStyle=(active)=>active?'background:rgba(255,255,255,.12);color:#fff;':'color:#9FB0B8;';
+    const seg=(active)=>active?'background:var(--accent);color:#25343F;':'background:transparent;color:#9FB0B8;';
+    const tab=(active)=>active?'background:#25343F;color:#fff;':'background:transparent;color:#5C6B76;';
+    const authTab=(active)=>active?'background:#fff;color:#25343F;box-shadow:0 1px 3px rgba(0,0,0,.08);':'background:transparent;color:#7B8990;';
+
+    const out={
+      brandLogo:'assets/logo.png',
+      role:s.role,isCliente:s.role==='cliente',isBarbearia:s.role==='barbearia',
+      isHome:s.screen==='home',isShop:s.screen==='shop',isAuth:s.screen==='auth',isForgot:s.screen==='forgot',isAppts:s.screen==='appts',isAgenda:s.screen==='agenda',isConfig:s.screen==='config',
+      loggedIn:!!s.user,loggedOut:!s.user,userInitials:s.user?this.initials(s.user.nome):'',
+      toast:s.toast,
+      navHome:()=>this.nav('home'),navAppts:()=>this.nav('appts'),navAgenda:()=>this.nav('agenda'),navConfig:()=>this.nav('config'),goAuth:()=>this.nav('auth'),logout:()=>this.logout(),
+      setCliente:()=>this.setRole('cliente'),setBarbearia:()=>this.setRole('barbearia'),
+      navHomeStyle:navStyle(s.screen==='home'),navApptsStyle:navStyle(s.screen==='appts'),navAgendaStyle:navStyle(s.screen==='agenda'),navConfigStyle:navStyle(s.screen==='config'),
+      segClienteStyle:seg(s.role==='cliente'),segBarbeariaStyle:seg(s.role==='barbearia'),
+    };
+
+    /* HOME */
+    const q=s.query.trim().toLowerCase();
+    const matches=(sh)=>!q||sh.nome.toLowerCase().includes(q)||sh.endereco.toLowerCase().includes(q)||sh.services.some(x=>x.nome.toLowerCase().includes(q));
+    const list=s.shops.filter(matches);
+    out.query=s.query;out.onQuery=(e)=>this.setState({query:e.target.value});
+    out.shopsVM=list.map(sh=>({id:sh.id,nome:sh.nome,desc:sh.desc,endereco:sh.endereco,tel:sh.tel,servCount:sh.services.length,priceFrom:this.money(Math.min(...sh.services.map(x=>x.preco))),open:()=>this.openShop(sh.id)}));
+    out.shopsEmpty=list.length===0;
+
+    /* SHOP */
+    const shop=this.findShop(s.selShop);
+    if(shop){
+      const selSvc=shop.services.find(x=>x.id===s.dService);
+      out.shop={
+        nome:shop.nome,desc:shop.desc,endereco:shop.endereco,tel:shop.tel,
+        services:shop.services.filter(x=>x.ativo).map(sv=>({id:sv.id,nome:sv.nome,desc:sv.desc,precoFmt:this.money(sv.preco),durLabel:sv.dur+' min',
+          select:()=>this.setState({dService:sv.id}),
+          boxStyle:s.dService===sv.id?'border:2px solid var(--accent);background:var(--accent-soft);':'border:1px solid #E3E9EC;background:#fff;'})),
+        barbers:shop.barbers.map(b=>({id:b.id,nome:b.nome,espec:b.espec,initials:this.initials(b.nome),
+          select:()=>this.setState({dBarber:b.id,dTime:null}),
+          boxStyle:s.dBarber===b.id?'border:2px solid var(--accent);background:var(--accent-soft);':'border:1px solid #E3E9EC;background:#fff;'})),
+        dateChips:this.buildChips(14,s.dDate,(iso)=>this.setState({dDate:iso,dTime:null}),shop),
+        slotsReady:!!(s.dBarber&&s.dDate),
+        slotsHint:!(s.dBarber&&s.dDate),
+      };
+      const slots=this.slotsFor(shop,s.dBarber,s.dDate);
+      out.shop.slots=slots.map(sl=>({label:sl.t,disabled:sl.taken,select:()=>{if(!sl.taken)this.setState({dTime:sl.t});},
+        boxStyle:sl.taken?'background:#F2F5F6;color:#C2CCD1;border:1px solid #EBEFF1;cursor:not-allowed;text-decoration:line-through;':(s.dTime===sl.t?'background:#25343F;color:#fff;border:1px solid #25343F;':'background:#fff;color:#25343F;border:1px solid #E3E9EC;')}));
+      out.shop.slotsEmpty=(s.dBarber&&s.dDate&&slots.length===0);
+      out.sumService=selSvc?selSvc.nome:'—';
+      const selB=shop.barbers.find(x=>x.id===s.dBarber);
+      out.sumBarber=selB?selB.nome:'—';
+      out.sumDate=s.dDate?this.fmtDate(s.dDate):'—';
+      out.sumTime=s.dTime||'—';
+      out.sumTotal=selSvc?this.money(selSvc.preco):'R$ 0,00';
+      const ok=!!(s.dService&&s.dBarber&&s.dDate&&s.dTime);
+      out.confirmDisabled=!ok;
+      out.confirmStyle=ok?'background:var(--accent);color:#25343F;':'background:#E3E9EC;color:#A8B6BC;cursor:not-allowed;';
+      out.confirmLabel=s.user?'Confirmar agendamento':'Entrar e confirmar';
+      out.confirm=()=>this.confirm();
+    }else{
+      out.shop={nome:'',desc:'',endereco:'',tel:'',services:[],barbers:[],dateChips:[],slots:[],slotsReady:false,slotsHint:true,slotsEmpty:false};
+      out.sumService='—';out.sumBarber='—';out.sumDate='—';out.sumTime='—';out.sumTotal='R$ 0,00';out.confirmDisabled=true;out.confirmStyle='background:#E3E9EC;color:#A8B6BC;';out.confirmLabel='Confirmar agendamento';out.confirm=()=>{};
+    }
+
+    /* AUTH */
+    out.authMode=s.authMode;out.isCadastro=s.authMode==='cadastro';out.isLogin=s.authMode==='login';out.pending=s.pending;
+    out.authTitle=s.authMode==='cadastro'?'Crie sua conta':'Bem-vindo de volta';
+    out.authSubtitle=s.authMode==='cadastro'?'É rápido e gratuito.':'Entre para gerenciar seus agendamentos.';
+    out.authCta=s.authMode==='cadastro'?'Criar conta':'Entrar';
+    out.setLogin=()=>this.setState({authMode:'login',authError:''});
+    out.setCadastro=()=>this.setState({authMode:'cadastro',authError:''});
+    out.tabLoginStyle=authTab(s.authMode==='login');out.tabCadastroStyle=authTab(s.authMode==='cadastro');
+    out.afNome=s.af.nome;out.afEmail=s.af.email;out.afPhone=s.af.phone;out.afPass=s.af.pass;out.authError=s.authError;
+    out.onAfNome=(e)=>this.setAf('nome',e.target.value);out.onAfEmail=(e)=>this.setAf('email',e.target.value);out.onAfPhone=(e)=>this.setAf('phone',e.target.value);out.onAfPass=(e)=>this.setAf('pass',e.target.value);
+    out.submitAuth=()=>this.submitAuth();
+    out.goForgot=()=>this.nav('forgot');
+
+    /* FORGOT PASSWORD */
+    const fg=s.fg;
+    out.fgEmail=fg.email;out.fgPass=fg.pass;out.fgPass2=fg.pass2;out.fgError=fg.error;
+    out.fgIsRequest=fg.step==='request';out.fgIsSent=fg.step==='sent';out.fgIsReset=fg.step==='reset';out.fgIsDone=fg.step==='done';
+    out.fgShowBack=fg.step!=='done';
+    out.fgTitle=({request:'Recuperar senha',sent:'Verifique seu e-mail',reset:'Criar nova senha',done:'Tudo certo!'})[fg.step];
+    out.fgSubtitle=({request:'Enviaremos um link para você criar uma nova senha.',sent:'Enviamos as instruções para '+(fg.email||'seu e-mail')+'.',reset:'Escolha uma senha com pelo menos 6 caracteres.',done:'Sua senha foi atualizada.'})[fg.step];
+    out.onFgEmail=(e)=>this.setFg('email',e.target.value);
+    out.onFgPass=(e)=>this.setFg('pass',e.target.value);
+    out.onFgPass2=(e)=>this.setFg('pass2',e.target.value);
+    out.fgSend=()=>this.fgSend();
+    out.fgOpenReset=()=>this.setState(st=>({fg:{...st.fg,step:'reset',error:''}}));
+    out.fgRestart=()=>this.setState(st=>({fg:{...st.fg,step:'request',error:''}}));
+    out.fgSubmitReset=()=>this.fgSubmitReset();
+    out.fgBackToLogin=()=>{this.setState({fg:{step:'request',email:'',pass:'',pass2:'',error:''}});this.nav('auth');};
+
+    /* APPTS */
+    const mine=s.appts.filter(a=>a.client==='Você');
+    const up=mine.filter(a=>a.status==='agendado').sort((x,y)=>(x.date+x.time).localeCompare(y.date+y.time)).map(a=>{const v=this.apptVM(a);v.cancel=()=>this.setStatus(a.id,'cancelado');return v;});
+    const pa=mine.filter(a=>a.status!=='agendado').sort((x,y)=>(y.date+y.time).localeCompare(x.date+x.time)).map(a=>this.apptVM(a));
+    out.upcoming=up;out.hasUpcoming=up.length>0;out.noUpcoming=up.length===0;
+    out.past=pa;out.hasPast=pa.length>0;out.noPast=pa.length===0;
+
+    /* AGENDA */
+    const agShop=this.findShop(s.agShop);
+    out.agShopNome=agShop?agShop.nome:'';
+    out.agDateChips=this.buildChips(7,s.agDate,(iso)=>this.setState({agDate:iso}),null);
+    const agAll=s.appts.filter(a=>a.shopId===s.agShop&&a.date===s.agDate).sort((x,y)=>x.time.localeCompare(y.time));
+    out.agList=agAll.map(a=>{const v=this.apptVM(a);v.client=a.client;v.showActions=a.status==='agendado';v.markDone=()=>this.setStatus(a.id,'realizado');v.markCancel=()=>this.setStatus(a.id,'cancelado');return v;});
+    out.agHasList=agAll.length>0;out.agEmpty=agAll.length===0;
+    out.agTotal=agAll.length;out.agAgendados=agAll.filter(a=>a.status==='agendado').length;out.agRealizados=agAll.filter(a=>a.status==='realizado').length;
+
+    /* CONFIG */
+    const cfg=this.findShop(s.agShop)||{services:[],barbers:[],horarios:this.baseHor(),nome:'',desc:'',tel:'',endereco:''};
+    out.cfgTab=s.cfgTab;
+    out.tabDados=s.cfgTab==='dados';out.cfgDados=s.cfgTab==='dados';out.cfgServicos=s.cfgTab==='servicos';out.cfgBarbeiros=s.cfgTab==='barbeiros';out.cfgHorarios=s.cfgTab==='horarios';
+    out.tabDados=()=>this.setState({cfgTab:'dados'});out.tabServicos=()=>this.setState({cfgTab:'servicos'});out.tabBarbeiros=()=>this.setState({cfgTab:'barbeiros'});out.tabHorarios=()=>this.setState({cfgTab:'horarios'});
+    out.cfgDados=s.cfgTab==='dados';
+    out.tabDadosStyle=tab(s.cfgTab==='dados');out.tabServicosStyle=tab(s.cfgTab==='servicos');out.tabBarbeirosStyle=tab(s.cfgTab==='barbeiros');out.tabHorariosStyle=tab(s.cfgTab==='horarios');
+    out.cfgNome=cfg.nome;out.cfgDesc=cfg.desc;out.cfgTel=cfg.tel;out.cfgEnd=cfg.endereco;
+    out.onCfgNome=(e)=>this.updateShop({nome:e.target.value});out.onCfgDesc=(e)=>this.updateShop({desc:e.target.value});out.onCfgTel=(e)=>this.updateShop({tel:e.target.value});out.onCfgEnd=(e)=>this.updateShop({endereco:e.target.value});
+    out.saveCfg=()=>{this.setState({toast:'Dados salvos.'});this.clearToast();};
+    out.servicesAll=cfg.services.map(sv=>({id:sv.id,nome:sv.nome,precoFmt:this.money(sv.preco),durLabel:sv.dur+' min',remove:()=>this.removeService(sv.id)}));
+    out.svcNome=s.svcForm.nome;out.svcPreco=s.svcForm.preco;out.svcDur=s.svcForm.dur;
+    out.onSvcNome=(e)=>this.setState(st=>({svcForm:{...st.svcForm,nome:e.target.value}}));out.onSvcPreco=(e)=>this.setState(st=>({svcForm:{...st.svcForm,preco:e.target.value}}));out.onSvcDur=(e)=>this.setState(st=>({svcForm:{...st.svcForm,dur:e.target.value}}));
+    out.addService=()=>this.addService();
+    out.barbersAll=cfg.barbers.map(b=>({id:b.id,nome:b.nome,espec:b.espec,initials:this.initials(b.nome),remove:()=>this.removeBarber(b.id)}));
+    out.barberFormVal=s.barberForm;out.onBarberForm=(e)=>this.setState({barberForm:e.target.value});out.addBarber=()=>this.addBarber();
+    const order=[1,2,3,4,5,6,0];
+    out.horariosList=order.map(dw=>{const h=cfg.horarios[dw];return {dw,dayLabel:this.DOWS_FULL[dw],on:h.on,off:!h.on,a:h.a,f:h.f,
+      toggle:()=>this.toggleHor(dw),onA:(e)=>this.setHor(dw,'a',e.target.value),onF:(e)=>this.setHor(dw,'f',e.target.value),
+      rowStyle:h.on?'':'opacity:.65;',
+      switchStyle:h.on?'background:var(--accent);':'background:#CDD7DC;',
+      knobStyle:h.on?'left:20px;':'left:2px;'};});
+
+    return out;
+  }
+}
+</script>
+</body>
+</html>

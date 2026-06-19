@@ -1,0 +1,438 @@
+"""
+Configurações e fixtures para testes pytest.
+
+Fornece fixtures reutilizáveis e helpers para testes da aplicação.
+"""
+# ============================================================
+# CRÍTICO: Configurar banco de dados ANTES de qualquer import
+# que possa carregar db_util.py (via repos ou outros módulos)
+# ============================================================
+import os
+import tempfile
+
+# Criar arquivo temporário para o banco de testes
+_test_db = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db')
+_TEST_DB_PATH = _test_db.name
+_test_db.close()
+
+# Configurar variáveis de ambiente ANTES de importar qualquer módulo da aplicação.
+# load_dotenv() (em util/config.py) não sobrescreve variáveis já definidas, então
+# estes valores têm prioridade e garantem que a suíte rode mesmo sem um arquivo .env.
+os.environ['DATABASE_PATH'] = _TEST_DB_PATH
+os.environ['RESEND_API_KEY'] = ''
+os.environ['LOG_LEVEL'] = 'ERROR'
+# Modo de desenvolvimento + chave de teste evitam a validação de segurança do
+# SECRET_KEY em util/config.py (que aborta a importação num clone sem .env).
+os.environ['RUNNING_MODE'] = 'Development'
+os.environ['SECRET_KEY'] = 'test-secret-key-for-pytest-only-not-for-production'
+
+# ============================================================
+# Agora sim, importar o resto (db_util já lerá o valor correto)
+# ============================================================
+import pytest
+from fastapi.testclient import TestClient
+from fastapi import status
+from util.perfis import Perfil
+
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_test_database():
+    """
+    Garante que o banco de teste está configurado e limpa ao final.
+
+    O banco já foi configurado no nível de módulo (acima), esta fixture
+    apenas gerencia o cleanup ao final da sessão.
+    """
+    yield _TEST_DB_PATH
+
+    # Limpar: remover arquivo de banco após todos os testes
+    try:
+        os.unlink(_TEST_DB_PATH)
+    except Exception:
+        pass
+
+
+@pytest.fixture(scope="function", autouse=True)
+def limpar_rate_limiter():
+    """
+    Limpa todos os rate limiters antes/depois de cada teste para evitar bloqueios.
+
+    Descobre os limiters por reflexão nos módulos de rotas (robusto a renomeações),
+    coletando qualquer instância de RateLimiter declarada em nível de módulo.
+    """
+    import importlib
+    import pkgutil
+    import routes as routes_pkg
+    from util.rate_limiter import RateLimiter
+
+    limiters = []
+    for _, mod_name, _ in pkgutil.iter_modules(routes_pkg.__path__):
+        modulo = importlib.import_module(f"routes.{mod_name}")
+        for valor in vars(modulo).values():
+            if isinstance(valor, RateLimiter):
+                limiters.append(valor)
+
+    for limiter in limiters:
+        limiter.limpar()
+
+    yield
+
+    for limiter in limiters:
+        limiter.limpar()
+
+
+@pytest.fixture(scope="function", autouse=True)
+def limpar_config_cache():
+    """Limpa o cache de configurações antes de cada teste para evitar interferência"""
+    from util.config_cache import config
+
+    # Limpar antes do teste
+    config.limpar()
+
+    yield
+
+    # Limpar depois do teste também
+    config.limpar()
+
+
+@pytest.fixture(scope="function", autouse=True)
+def limpar_banco_dados():
+    """Limpa todas as tabelas do banco antes de cada teste para evitar interferência"""
+    # Importar após configuração do banco de dados
+    from util.db_util import obter_conexao
+
+    def _limpar_tabelas():
+        """Limpa tabelas se elas existirem e reseta autoincrement"""
+        with obter_conexao() as conn:
+            cursor = conn.cursor()
+            # Verificar se tabelas existem antes de limpar
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' "
+                "AND name IN ('usuario', 'configuracao')"
+            )
+            tabelas_existentes = [row[0] for row in cursor.fetchall()]
+
+            # Limpar apenas tabelas que existem (respeitando foreign keys)
+            if 'usuario' in tabelas_existentes:
+                cursor.execute("DELETE FROM usuario")
+            if 'configuracao' in tabelas_existentes:
+                cursor.execute("DELETE FROM configuracao")
+
+            # Resetar autoincrement (limpar sqlite_sequence se existir)
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='sqlite_sequence'"
+            )
+            if cursor.fetchone():
+                cursor.execute("DELETE FROM sqlite_sequence")
+
+            conn.commit()
+
+    # Limpar antes do teste
+    _limpar_tabelas()
+
+    yield
+
+    # Limpar depois do teste também
+    _limpar_tabelas()
+
+
+@pytest.fixture(scope="function")
+def client():
+    """
+    Cliente de teste FastAPI com sessão limpa para cada teste
+    Importa app DEPOIS de configurar o banco de dados
+    """
+    # Importar aqui para garantir que as configurações de teste sejam aplicadas
+    from main import app
+
+    # Criar cliente de teste
+    with TestClient(app) as test_client:
+        yield test_client
+
+
+@pytest.fixture
+def usuario_teste():
+    """Dados de um usuário de teste padrão"""
+    return {
+        "nome": "Usuario Teste",
+        "email": "teste@example.com",
+        "senha": "Senha@123",
+        "perfil": Perfil.CLIENTE.value  # Usa Enum Perfil
+    }
+
+
+@pytest.fixture
+def admin_teste():
+    """Dados de um admin de teste"""
+    return {
+        "nome": "Admin Teste",
+        "email": "admin@example.com",
+        "senha": "Admin@123",
+        "perfil": Perfil.ADMIN.value  # Usa Enum Perfil
+    }
+
+
+@pytest.fixture
+def criar_usuario(client):
+    """
+    Fixture que retorna uma função para criar usuários
+    Útil para criar múltiplos usuários em um teste
+    """
+    def _criar_usuario(nome: str, email: str, senha: str, perfil: str = Perfil.CLIENTE.value):
+        """Cadastra um usuário via endpoint JSON de cadastro (com CSRF)."""
+        token = client.get("/api/csrf-token").json()["token"]
+        response = client.post("/api/cadastrar", json={
+            "perfil": perfil,
+            "nome": nome,
+            "email": email,
+            "senha": senha,
+            "confirmar_senha": senha
+        }, headers={"X-CSRF-Token": token})
+        return response
+
+    return _criar_usuario
+
+
+@pytest.fixture
+def fazer_login(client):
+    """
+    Fixture que retorna uma função para fazer login
+    Retorna o cliente já autenticado
+    """
+    def _fazer_login(email: str, senha: str):
+        """Faz login via endpoint JSON (com CSRF) e retorna a resposta."""
+        token = client.get("/api/csrf-token").json()["token"]
+        response = client.post("/api/login", json={
+            "email": email,
+            "senha": senha
+        }, headers={"X-CSRF-Token": token})
+        return response
+
+    return _fazer_login
+
+
+@pytest.fixture
+def cliente_autenticado(client, criar_usuario, fazer_login, usuario_teste):
+    """
+    Fixture que retorna um cliente já autenticado
+    Cria um usuário e faz login automaticamente
+    """
+    # Criar usuário
+    criar_usuario(
+        usuario_teste["nome"],
+        usuario_teste["email"],
+        usuario_teste["senha"]
+    )
+
+    # Fazer login
+    fazer_login(usuario_teste["email"], usuario_teste["senha"])
+
+    # Retornar cliente autenticado
+    return client
+
+
+@pytest.fixture
+def admin_autenticado(client, criar_usuario, fazer_login, admin_teste):
+    """
+    Fixture que retorna um cliente autenticado como admin
+    """
+    # Importar para manipular diretamente o banco
+    from repo import usuario_repo
+    from model.usuario_model import Usuario
+    from util.security import criar_hash_senha
+
+    # Criar admin diretamente no banco (pular validações de cadastro público)
+    admin = Usuario(
+        id=0,
+        nome=admin_teste["nome"],
+        email=admin_teste["email"],
+        senha=criar_hash_senha(admin_teste["senha"]),
+        perfil=Perfil.ADMIN.value  # Usa Enum Perfil
+    )
+    usuario_repo.inserir(admin)
+
+    # Fazer login
+    fazer_login(admin_teste["email"], admin_teste["senha"])
+
+    # Retornar cliente autenticado
+    return client
+
+
+@pytest.fixture
+def vendedor_teste():
+    """Dados de um usuário de teste com perfil Barbearia (segundo perfil
+    distinto de Cliente). Nome de fixture legado mantido para compatibilidade."""
+    return {
+        "nome": "Barbearia Teste",
+        "email": "barbearia@example.com",
+        "senha": "Barbearia@123",
+        "perfil": Perfil.BARBEARIA.value
+    }
+
+
+@pytest.fixture
+def vendedor_autenticado(client, criar_usuario, fazer_login, vendedor_teste):
+    """
+    Fixture que retorna um cliente autenticado com perfil Barbearia.
+    Nome de fixture legado mantido para compatibilidade.
+    """
+    # Importar para manipular diretamente o banco
+    from repo import usuario_repo
+    from model.usuario_model import Usuario
+    from util.security import criar_hash_senha
+
+    # Criar vendedor diretamente no banco
+    vendedor = Usuario(
+        id=0,
+        nome=vendedor_teste["nome"],
+        email=vendedor_teste["email"],
+        senha=criar_hash_senha(vendedor_teste["senha"]),
+        perfil=Perfil.BARBEARIA.value
+    )
+    usuario_repo.inserir(vendedor)
+
+    # Fazer login
+    fazer_login(vendedor_teste["email"], vendedor_teste["senha"])
+
+    # Retornar cliente autenticado
+    return client
+
+
+@pytest.fixture
+def foto_teste_base64():
+    """
+    Retorna uma imagem 1x1 pixel PNG válida em base64
+    Útil para testes de upload de foto
+    """
+    # PNG 1x1 pixel transparente em base64
+    return (
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJ"
+        "AAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+    )
+
+
+# ===== FIXTURES AVANÇADAS =====
+
+@pytest.fixture
+def dois_usuarios(client, criar_usuario):
+    """
+    Fixture que cria dois usuários de teste.
+
+    Útil para testes que verificam isolamento de dados entre usuários.
+
+    Returns:
+        Tuple com dados dos dois usuários (dict, dict)
+    """
+    usuario1 = {
+        "nome": "Usuario Um",
+        "email": "usuario1@example.com",
+        "senha": "Senha@123",
+        "perfil": Perfil.CLIENTE.value
+    }
+    usuario2 = {
+        "nome": "Usuario Dois",
+        "email": "usuario2@example.com",
+        "senha": "Senha@456",
+        "perfil": Perfil.CLIENTE.value
+    }
+
+    # Criar ambos usuários
+    criar_usuario(usuario1["nome"], usuario1["email"], usuario1["senha"])
+    criar_usuario(usuario2["nome"], usuario2["email"], usuario2["senha"])
+
+    return usuario1, usuario2
+
+
+@pytest.fixture
+def usuario_com_foto(cliente_autenticado, foto_teste_base64):
+    """
+    Fixture que retorna um cliente autenticado com foto de perfil.
+
+    Returns:
+        TestClient autenticado com foto já salva
+    """
+    # Atualizar foto do perfil (endpoint JSON com CSRF)
+    token = cliente_autenticado.get("/api/csrf-token").json()["token"]
+    response = cliente_autenticado.put(
+        "/api/usuario/foto",
+        json={"foto_base64": foto_teste_base64},
+        headers={"X-CSRF-Token": token},
+    )
+
+    # Verificar se foto foi salva com sucesso
+    assert response.status_code == status.HTTP_200_OK
+
+    return cliente_autenticado
+
+
+@pytest.fixture
+def criar_usuario_direto():
+    """
+    Fixture que retorna função para criar usuário diretamente no banco.
+
+    Útil para testes que precisam criar usuários sem passar pelo endpoint
+    de cadastro (ex: testes de chat, admin, etc).
+
+    Returns:
+        Função que cria usuário e retorna o ID
+    """
+    from repo import usuario_repo
+    from model.usuario_model import Usuario
+    from util.security import criar_hash_senha
+
+    def _criar_usuario_direto(
+        nome: str,
+        email: str,
+        senha: str,
+        perfil: str = Perfil.CLIENTE.value
+    ) -> int:
+        """
+        Cria usuário diretamente no banco.
+
+        Args:
+            nome: Nome do usuário
+            email: Email do usuário
+            senha: Senha (será hasheada)
+            perfil: Perfil do usuário (padrão: Cliente)
+
+        Returns:
+            ID do usuário criado
+        """
+        usuario = Usuario(
+            id=0,
+            nome=nome,
+            email=email,
+            senha=criar_hash_senha(senha),
+            perfil=perfil
+        )
+        return usuario_repo.inserir(usuario)
+
+    return _criar_usuario_direto
+
+
+@pytest.fixture
+def bloquear_rate_limiter():
+    """
+    Fixture que retorna função para mockar rate limiter como bloqueado.
+
+    Útil para testes de rate limiting onde se quer simular
+    que o limite foi excedido.
+
+    Returns:
+        Context manager que mocka o limiter especificado
+    """
+    from unittest.mock import patch
+
+    def _bloquear_limiter(limiter_path: str):
+        """
+        Retorna context manager que bloqueia o limiter.
+
+        Args:
+            limiter_path: Caminho do limiter (ex: 'routes.auth_routes.login_limiter')
+
+        Returns:
+            Context manager do patch
+        """
+        return patch(f'{limiter_path}.verificar', return_value=False)
+
+    return _bloquear_limiter

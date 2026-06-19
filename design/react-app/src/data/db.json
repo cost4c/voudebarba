@@ -1,0 +1,116 @@
+{
+  "shops": [
+    {
+      "id": 1,
+      "nome": "Barbearia Dom Bigode",
+      "desc": "Tradição e navalha no coração da cidade.",
+      "endereco": "Rua Augusta, 1200 — Centro",
+      "tel": "(11) 4002-1100",
+      "horarios": {
+        "0": { "on": false, "a": "09:00", "f": "18:00" },
+        "1": { "on": true,  "a": "09:00", "f": "19:00" },
+        "2": { "on": true,  "a": "09:00", "f": "19:00" },
+        "3": { "on": true,  "a": "09:00", "f": "19:00" },
+        "4": { "on": true,  "a": "09:00", "f": "19:00" },
+        "5": { "on": true,  "a": "09:00", "f": "20:00" },
+        "6": { "on": true,  "a": "09:00", "f": "17:00" }
+      },
+      "services": [
+        { "id": 1, "nome": "Corte Masculino", "desc": "Máquina e tesoura, lavagem inclusa", "preco": 45, "dur": 30, "ativo": true },
+        { "id": 2, "nome": "Barba Completa", "desc": "Toalha quente e navalha", "preco": 35, "dur": 30, "ativo": true },
+        { "id": 3, "nome": "Corte + Barba", "desc": "O combo completo", "preco": 70, "dur": 60, "ativo": true },
+        { "id": 4, "nome": "Pezinho", "desc": "Acabamento de contorno", "preco": 20, "dur": 15, "ativo": true }
+      ],
+      "barbers": [
+        { "id": 1, "nome": "Rafael Mendes", "espec": "Cortes clássicos" },
+        { "id": 2, "nome": "Tiago Alves", "espec": "Barba e navalha" }
+      ]
+    },
+    {
+      "id": 2,
+      "nome": "Navalha & Cia",
+      "desc": "Barbearia premium com barboterapia.",
+      "endereco": "Av. Paulista, 800 — Bela Vista",
+      "tel": "(11) 4002-2200",
+      "horarios": {
+        "0": { "on": false, "a": "09:00", "f": "18:00" },
+        "1": { "on": true,  "a": "09:00", "f": "19:00" },
+        "2": { "on": true,  "a": "09:00", "f": "19:00" },
+        "3": { "on": true,  "a": "09:00", "f": "19:00" },
+        "4": { "on": true,  "a": "09:00", "f": "19:00" },
+        "5": { "on": true,  "a": "09:00", "f": "20:00" },
+        "6": { "on": true,  "a": "09:00", "f": "17:00" }
+      },
+      "services": [
+        { "id": 1, "nome": "Corte Navalhado", "desc": "Degradê finalizado na navalha", "preco": 50, "dur": 40, "ativo": true },
+        { "id": 2, "nome": "Barboterapia", "desc": "Ritual de barba premium", "preco": 45, "dur": 45, "ativo": true },
+        { "id": 3, "nome": "Corte + Barba", "desc": "Pacote assinatura", "preco": 85, "dur": 75, "ativo": true },
+        { "id": 4, "nome": "Platinado", "desc": "Descoloração e tonalização", "preco": 160, "dur": 120, "ativo": true }
+      ],
+      "barbers": [
+        { "id": 1, "nome": "Bruno Costa", "espec": "Degradês" },
+        { "id": 2, "nome": "Léo Farias", "espec": "Coloração" }
+      ]
+    },
+    {
+      "id": 3,
+      "nome": "Old School Barber Club",
+      "desc": "Cortes clássicos para toda a família.",
+      "endereco": "Rua dos Pinheiros, 45 — Pinheiros",
+      "tel": "(11) 4002-3300",
+      "horarios": {
+        "0": { "on": false, "a": "09:00", "f": "18:00" },
+        "1": { "on": true,  "a": "09:00", "f": "19:00" },
+        "2": { "on": true,  "a": "09:00", "f": "19:00" },
+        "3": { "on": true,  "a": "09:00", "f": "19:00" },
+        "4": { "on": true,  "a": "09:00", "f": "19:00" },
+        "5": { "on": true,  "a": "09:00", "f": "20:00" },
+        "6": { "on": true,  "a": "09:00", "f": "17:00" }
+      },
+      "services": [
+        { "id": 1, "nome": "Corte Clássico", "desc": "Tesoura e máquina", "preco": 40, "dur": 30, "ativo": true },
+        { "id": 2, "nome": "Barba", "desc": "Aparo e desenho", "preco": 30, "dur": 30, "ativo": true },
+        { "id": 3, "nome": "Corte Infantil", "desc": "Até 10 anos", "preco": 35, "dur": 30, "ativo": true },
+        { "id": 4, "nome": "Sobrancelha", "desc": "Limpeza e design", "preco": 15, "dur": 15, "ativo": true }
+      ],
+      "barbers": [
+        { "id": 1, "nome": "Daniel Rocha", "espec": "Old school" },
+        { "id": 2, "nome": "Igor Nunes", "espec": "Infantil" }
+      ]
+    },
+    {
+      "id": 4,
+      "nome": "Studio Corte Fino",
+      "desc": "Estilo e precisão em cada corte.",
+      "endereco": "Al. Santos, 300 — Jardins",
+      "tel": "(11) 4002-4400",
+      "horarios": {
+        "0": { "on": false, "a": "09:00", "f": "18:00" },
+        "1": { "on": true,  "a": "09:00", "f": "19:00" },
+        "2": { "on": true,  "a": "09:00", "f": "19:00" },
+        "3": { "on": true,  "a": "09:00", "f": "19:00" },
+        "4": { "on": true,  "a": "09:00", "f": "19:00" },
+        "5": { "on": true,  "a": "09:00", "f": "20:00" },
+        "6": { "on": true,  "a": "09:00", "f": "17:00" }
+      },
+      "services": [
+        { "id": 1, "nome": "Corte Premium", "desc": "Consultoria de estilo", "preco": 60, "dur": 45, "ativo": true },
+        { "id": 2, "nome": "Barba Desenhada", "desc": "Modelagem detalhada", "preco": 40, "dur": 30, "ativo": true },
+        { "id": 3, "nome": "Corte + Barba VIP", "desc": "Experiência completa", "preco": 95, "dur": 75, "ativo": true }
+      ],
+      "barbers": [
+        { "id": 1, "nome": "Henrique Sá", "espec": "Premium" },
+        { "id": 2, "nome": "Vitor Lima", "espec": "Barba" }
+      ]
+    }
+  ],
+  "appointments": [
+    { "id": 101, "shopId": 1, "barberId": 1, "serviceId": 1, "client": "Marcos Lima",  "dayOffset": 0,  "time": "09:00", "status": "agendado" },
+    { "id": 102, "shopId": 1, "barberId": 2, "serviceId": 3, "client": "João Pereira", "dayOffset": 0,  "time": "10:30", "status": "agendado" },
+    { "id": 103, "shopId": 1, "barberId": 1, "serviceId": 2, "client": "Você",         "dayOffset": 0,  "time": "15:00", "status": "agendado" },
+    { "id": 104, "shopId": 1, "barberId": 2, "serviceId": 1, "client": "Felipe Souza", "dayOffset": 0,  "time": "16:30", "status": "agendado" },
+    { "id": 105, "shopId": 1, "barberId": 1, "serviceId": 4, "client": "André Melo",   "dayOffset": 0,  "time": "11:30", "status": "realizado" },
+    { "id": 106, "shopId": 1, "barberId": 1, "serviceId": 3, "client": "Carlos Dias",  "dayOffset": 1,  "time": "14:00", "status": "agendado" },
+    { "id": 107, "shopId": 2, "barberId": 1, "serviceId": 3, "client": "Você",         "dayOffset": -4, "time": "14:00", "status": "realizado" }
+  ]
+}

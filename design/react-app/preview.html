@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VouDeBarba — preview</title>
+<!--
+  Harness de PREVIEW (não faz parte do build).
+  Carrega os arquivos reais de src/ no navegador: transpila JSX com Babel e
+  resolve os imports relativos via blob URLs, usando esm.sh para react/react-router.
+  Em produção use `npm run dev` / `npm run build` (Vite).
+-->
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@19.2.7",
+    "react/jsx-runtime": "https://esm.sh/react@19.2.7/jsx-runtime",
+    "react-dom": "https://esm.sh/react-dom@19.2.7",
+    "react-dom/client": "https://esm.sh/react-dom@19.2.7/client",
+    "react-router": "https://esm.sh/react-router@8?external=react,react-dom",
+    "react-router/dom": "https://esm.sh/react-router@8/dom?external=react,react-dom"
+  }
+}
+</script>
+<script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script>
+(async function () {
+  const modCache = new Map();
+
+  function dirOf(path) {
+    const i = path.lastIndexOf('/');
+    return i === -1 ? '' : path.slice(0, i + 1);
+  }
+  function resolvePath(importer, spec) {
+    const u = new URL(spec, 'http://x/' + dirOf(importer));
+    return u.pathname.slice(1);
+  }
+  function findSpecifiers(code) {
+    const specs = new Set();
+    const re1 = /import\s+[^;'"]*?from\s*['"]([^'"]+)['"]/g;   // import X from '...'
+    const re2 = /(?:^|[\n;])\s*import\s*['"]([^'"]+)['"]/g;     // import '...'
+    let m;
+    while ((m = re1.exec(code))) specs.add(m[1]);
+    while ((m = re2.exec(code))) specs.add(m[1]);
+    return [...specs];
+  }
+
+  async function loadModule(path) {
+    if (modCache.has(path)) return modCache.get(path);
+    const promise = (async () => {
+      const res = await fetch(path);
+      if (!res.ok) throw new Error('Falha ao carregar ' + path + ' (' + res.status + ')');
+      let code = await res.text();
+
+      if (path.endsWith('.json')) {
+        return blobUrl('export default ' + code + ';');
+      }
+
+      // logo servido em /logo.png no Vite -> public/ no harness
+      code = code.split('/logo.png').join('public/logo.png');
+
+      for (const spec of findSpecifiers(code)) {
+        if (!spec.startsWith('.')) continue; // bare -> import map
+        const abs = resolvePath(path, spec);
+        if (abs.endsWith('.css')) {
+          // remove import de css (side-effect)
+          code = code.replace(new RegExp("import\\s*['\"]" + spec.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "['\"]\\s*;?", 'g'), '');
+          continue;
+        }
+        const url = await loadModule(abs);
+        code = code.split("'" + spec + "'").join("'" + url + "'");
+        code = code.split('"' + spec + '"').join('"' + url + '"');
+      }
+
+      const out = Babel.transform(code, {
+        presets: [['react', { runtime: 'automatic' }]],
+        filename: path,
+      }).code;
+      return blobUrl(out);
+    })();
+    modCache.set(path, promise);
+    return promise;
+  }
+
+  function blobUrl(code) {
+    return URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
+  }
+
+  try {
+    const entry = await loadModule('src/main.jsx');
+    await import(entry);
+  } catch (e) {
+    document.getElementById('root').innerHTML =
+      '<pre style="padding:24px;color:#B33A2B;font:14px monospace;white-space:pre-wrap">' + (e && e.stack || e) + '</pre>';
+    console.error(e);
+  }
+})();
+</script>
+</body>
+</html>
