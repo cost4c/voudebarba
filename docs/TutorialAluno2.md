@@ -6,13 +6,162 @@ Leia com calma. Cada passo diz **qual arquivo** mexer, se é **arquivo novo** ou
 
 ---
 
+# Setup — preparando o computador do zero
+
+Antes de programar qualquer coisa, você precisa preparar o ambiente. Esta seção parte do zero: instala as ferramentas, baixa o projeto, liga o backend e o frontend e te deixa pronto para começar. Faça **na ordem** e não pule etapas.
+
+## 1. Instalar as ferramentas
+
+Você vai precisar de quatro programas. Instale cada um, depois confira se ficou tudo certo.
+
+### Git
+
+O **Git** é o programa que baixa o código do projeto da internet e guarda o histórico das suas mudanças. É como um "controle de versão": ele anota cada alteração que você faz, então dá para voltar atrás se algo quebrar.
+
+- **Windows:** baixe em https://git-scm.com/download/win e instale com as opções padrão.
+- **macOS:** abra o Terminal e rode `xcode-select --install` (ou instale pelo https://git-scm.com/download/mac).
+- **Linux:** `sudo apt install git` (Ubuntu/Debian) ou o gerenciador da sua distro.
+
+### Python 3.11 ou mais novo
+
+O **Python** é a linguagem do backend (a parte que roda no servidor e fala com o banco de dados). Baixe em https://www.python.org/downloads/ e instale a versão **3.11 ou superior**.
+
+> **Atenção importante:** o projeto tem um arquivo chamado `.python-version` que aponta para o Python **3.14**. Essa versão pode não existir no seu computador e vai te dar erro. Não se preocupe: mais abaixo você vai criar o ambiente do projeto (a "venv") **forçando** o Python 3.11, e tudo funciona. Ignore o que está no `.python-version`.
+
+> **No Windows:** ao instalar o Python, marque a caixinha **"Add Python to PATH"** na primeira tela do instalador. Sem isso, o comando `python` não funciona no terminal.
+
+### Bun
+
+O **Bun** é a ferramenta que cuida da parte do frontend (a tela que aparece no navegador). Ele instala as bibliotecas que o site usa e roda o servidor de desenvolvimento. Pense nele como um "ajudante" do JavaScript, mais rápido que o tradicional `npm`.
+
+> **Importante:** neste projeto o gerenciador oficial é o **Bun**, *não* o `npm`. Use sempre os comandos com `bun`. Se você ver algum tutorial antigo mandando usar `npm`, troque por `bun`.
+
+- **macOS / Linux:** `curl -fsSL https://bun.sh/install | bash`
+- **Windows:** `powershell -c "irm bun.sh/install.ps1 | iex"`
+
+### VSCode
+
+O **VSCode** (Visual Studio Code) é o editor de código onde você vai escrever tudo. Baixe em https://code.visualstudio.com/ e instale.
+
+### Conferir se deu certo
+
+Abra um terminal novo e rode os três comandos abaixo. Cada um deve mostrar um número de versão (não um erro de "comando não encontrado"):
+
+```bash
+git --version
+python --version
+bun --version
+```
+
+Se `python --version` mostrar algo abaixo de 3.11, ou der erro, tente `python3 --version`. Em alguns sistemas o comando é `python3` em vez de `python`.
+
+## 2. Baixar (clonar) o projeto
+
+"Clonar" é baixar uma cópia completa do projeto, com todo o histórico. Escolha uma pasta onde quer guardar seus projetos, abra o terminal nela e rode:
+
+```bash
+git clone https://github.com/cost4c/voudebarba.git
+cd voudebarba
+```
+
+Agora você está dentro da pasta do projeto. Abra essa pasta no VSCode (menu **File → Open Folder**, ou rode `code .` no terminal).
+
+## 3. Criar uma branch para o seu trabalho
+
+Uma **branch** é uma "linha de trabalho paralela". Você cria uma branch separada para fazer suas mudanças sem mexer na versão principal do projeto (chamada `main`). **Por que fazer isso?** Porque assim, se algo der errado, a versão principal continua intacta — você só joga fora a sua branch. É a forma segura de experimentar.
+
+Crie e entre na sua branch:
+
+```bash
+git checkout -b minha-feature
+```
+
+O `-b` cria a branch e já te coloca dentro dela. A partir daqui, tudo que você fizer fica isolado em `minha-feature`.
+
+## 4. Preparar o backend
+
+O backend usa Python. A boa prática é criar um **ambiente virtual** (a "venv"): uma pasta isolada onde ficam só as bibliotecas deste projeto, sem bagunçar o Python do resto do computador.
+
+Entre na pasta do backend e crie a venv **usando o Python 3.11** (lembra do aviso sobre o `.python-version`?):
+
+```bash
+cd backend
+python -m venv .venv
+```
+
+> Se o comando `python` apontar para uma versão diferente de 3.11+, use o caminho completo do 3.11. Por exemplo, no macOS/Linux: `python3.11 -m venv .venv`. No Windows, pode ser `py -3.11 -m venv .venv`.
+
+Agora **ative** a venv (isso liga o ambiente isolado no seu terminal):
+
+- **macOS / Linux:** `source .venv/bin/activate`
+- **Windows (PowerShell):** `.venv\Scripts\Activate.ps1`
+- **Windows (CMD):** `.venv\Scripts\activate.bat`
+
+Quando a venv está ativa, aparece um `(.venv)` no começo da linha do terminal. Com ela ativa, instale as bibliotecas que o backend precisa:
+
+```bash
+pip install -r requirements.txt
+```
+
+O arquivo `requirements.txt` é uma lista de tudo que o backend usa (FastAPI e companhia). O `pip install -r` baixa tudo de uma vez.
+
+## 5. Preparar o frontend
+
+O frontend usa JavaScript/React. Abra **outro terminal**, vá para a pasta do frontend e instale as bibliotecas com o Bun:
+
+```bash
+cd frontend
+bun install
+```
+
+Isso baixa todas as dependências do site (React, Recharts, etc.) listadas no `package.json`.
+
+## 6. Rodar tudo
+
+Você vai manter **dois terminais abertos** ao mesmo tempo: um para o backend, outro para o frontend.
+
+**Terminal do backend** (com a venv ativa, dentro de `backend`):
+
+```bash
+.venv/bin/python main.py
+```
+
+O backend sobe na porta **8415**. A documentação interativa (onde dá para testar as rotas) fica em `http://localhost:8415/docs`.
+
+**Terminal do frontend** (dentro de `frontend`):
+
+```bash
+bun run dev
+```
+
+O site sobe na porta **5185**. Abra `http://localhost:5185` no navegador.
+
+> **Dica:** deixe os dois terminais rodando o tempo todo enquanto programa. O backend se atualiza sozinho quando você salva um arquivo `.py`; o frontend se atualiza sozinho quando você salva um `.tsx`/`.ts`.
+
+## 7. Extensões recomendadas do VSCode
+
+Extensões são "complementos" que deixam o VSCode mais inteligente para cada linguagem. Abra o painel de extensões (ícone de blocos na barra lateral, ou `Ctrl+Shift+X`) e instale estas:
+
+- **Python** — suporte básico para rodar e depurar código Python.
+- **Pylance** — autocompletar e detecção de erros de Python em tempo real.
+- **Python Debugger** — permite pausar o código e investigar passo a passo.
+- **Python Environments** — ajuda a escolher e gerenciar a venv certa.
+- **ESLint** — aponta erros e problemas de estilo no código JavaScript/TypeScript.
+- **SQLite3 Editor** — abre e visualiza o banco de dados SQLite direto no editor.
+- **vscode-icons** — coloca ícones bonitos nos arquivos, facilita achar as coisas.
+- **HTML CSS Support** — autocompletar para HTML e CSS.
+
+Pronto! Com o ambiente preparado e os dois servidores rodando, você já pode seguir o tutorial.
+
+---
+
 ## O que você vai construir
 
 Você vai implementar **duas funcionalidades** no VouDeBarba:
 
-1. **(A) Filtro de barbearias por serviço.** Na página inicial (HomePage), o cliente vai poder escolher um serviço (ex.: "Corte degradê", "Barba") em uma lista de chips. Ao escolher, a lista de barbearias mostra **apenas as barbearias que oferecem aquele serviço**. Isso é feito adicionando um novo parâmetro de busca `?servico_id` no endpoint público `GET /api/barbearias`, que faz um `JOIN` com a tabela `servico`.
+1. **(A) Filtro de barbearias por serviço.** Na página inicial (a HomePage), o cliente vai poder escolher um serviço (ex.: "Corte degradê", "Barba") clicando em um dos botões em formato de pílula — chamamos esses botões de **chips**. Ao escolher um serviço, a lista de barbearias passa a mostrar **só as barbearias que oferecem aquele serviço**. Isso é feito acrescentando um novo parâmetro de busca `?servico_id` no **endpoint** público `GET /api/barbearias`. (Um **endpoint** é simplesmente um "endereço" do backend que o frontend chama para pedir ou enviar dados — como uma porta de atendimento.) Esse endpoint faz um `JOIN` com a tabela `servico`. (Um **JOIN** é um comando do banco de dados que **junta** informações de duas tabelas — aqui, ele cruza "barbearias" com "serviços" para descobrir quais barbearias têm aquele serviço.)
 
-2. **(B) Relatório de ocupação do barbeiro.** O dono da barbearia (perfil `Barbearia`) vai ter uma página nova de relatório. Para um dia escolhido, o sistema calcula, **para cada barbeiro**, quantos minutos ele ficou ocupado (somando a duração dos agendamentos `Agendado`/`Realizado` daquele dia) dividido pelos minutos disponíveis (o expediente da barbearia naquele dia). O resultado é um **percentual de ocupação**, exibido em uma **barra de progresso** por barbeiro (usando a biblioteca Recharts, que o projeto já usa no painel admin).
+2. **(B) Relatório de ocupação do barbeiro.** O dono da barbearia (perfil `Barbearia`) vai ganhar uma página nova de relatório. Para um dia escolhido, o sistema calcula, **para cada barbeiro**, quantos minutos ele ficou ocupado (somando a duração dos agendamentos `Agendado`/`Realizado` daquele dia) e divide pelos minutos disponíveis (o expediente da barbearia naquele dia). O resultado é um **percentual de ocupação**, mostrado em uma **barra de progresso** por barbeiro (usando a biblioteca Recharts, que o projeto já usa no painel de administração).
 
 **Resultado final esperado:**
 
@@ -21,31 +170,37 @@ Você vai implementar **duas funcionalidades** no VouDeBarba:
 - `GET /api/barbearia/estatisticas/ocupacao?data=2026-06-22` devolve uma lista de barbeiros com percentual de ocupação.
 - Uma nova página `/relatorios` (menu "Relatórios" no perfil Barbearia) mostra uma barra de progresso por barbeiro.
 
+Para você ter uma ideia clara de onde quer chegar, é assim que as duas telas vão ficar no fim:
+
+![HomePage com os chips de serviço e o chip "Todos" selecionado, mostrando todas as barbearias](img/aluno2/01_home_chips_todos.png)
+
+![Página de relatório de ocupação, com uma barra de progresso por barbeiro](img/aluno2/05_relatorio_cores_laranja_vermelho.png)
+
 ---
 
 ## Pré-requisitos
 
-Você precisa do projeto rodando localmente. Abra **dois terminais**.
+Você já preparou tudo na seção **Setup** lá em cima. Confira só que os **dois servidores estão rodando**, cada um em seu terminal. Se ainda não estiverem, suba os dois.
 
 ### Terminal 1 — Backend
 
-O `.python-version` aponta para uma versão de Python que pode não estar instalada, então **sempre** use o interpretador do `venv`:
+Como o `.python-version` aponta para uma versão de Python que talvez não exista no seu computador, **sempre** rode o backend pelo Python que está dentro da venv (e não pelo Python "global"):
 
 ```bash
 cd backend
 .venv/bin/python main.py
 ```
 
-O backend sobe (por padrão em dev na porta **8415**). A documentação interativa fica em `http://localhost:8415/docs`.
+O backend sobe (em desenvolvimento, na porta **8415**). A documentação interativa, onde dá para testar as rotas direto no navegador, fica em `http://localhost:8415/docs`.
 
 ### Terminal 2 — Frontend
 
 ```bash
 cd frontend
-npm run dev
+bun run dev
 ```
 
-O Vite sobe na porta **5185** e faz proxy de `/api` para o backend. Acesse `http://localhost:5185`.
+O Vite (o servidor que monta o site) sobe na porta **5185** e encaminha tudo que começa com `/api` para o backend. Acesse `http://localhost:5185`.
 
 ### Logins úteis para testar (senha demo `1234aA@#`)
 
@@ -58,7 +213,7 @@ O Vite sobe na porta **5185** e faz proxy de `/api` para o backend. Acesse `http
 
 ## As camadas e a ordem de implementação
 
-O VouDeBarba tem uma arquitetura em **camadas**. No backend o caminho de uma requisição é:
+O VouDeBarba é organizado em **camadas** — pense em andares de um prédio, cada um com uma função. Uma "requisição" (um pedido que o navegador faz ao servidor) passa por esses andares na ordem. No backend, o caminho é:
 
 ```
 Rota (routes/) → DTO de saída (dtos/responses/) → Repositório (repo/) → SQL (sql/) → Banco SQLite
@@ -70,7 +225,9 @@ No frontend:
 Página (pages/) → tipos (lib/types.ts) → cliente HTTP (lib/api.ts) → backend
 ```
 
-Vamos implementar **de baixo para cima** (do banco até a tela). Por quê? Porque cada camada **depende** da camada de baixo. Se você começar pela tela, vai chamar um endpoint que ainda não existe e nada funciona. Construindo de baixo para cima, cada passo pode ser testado isoladamente (pelo `/docs`) antes de subir para o próximo.
+Repare na sigla **DTO** (de "Data Transfer Object", ou "objeto de transporte de dados"). É só o "molde" que define **quais campos** o backend manda de volta para o frontend — uma espécie de formulário com os campos certos. O "DTO de saída" é o molde da resposta.
+
+Vamos implementar **de baixo para cima** (do banco de dados até a tela). Por quê? Porque cada camada **depende** da camada de baixo. Se você começar pela tela, vai acabar chamando um endpoint que ainda não existe e nada funciona. Construindo de baixo para cima, dá para testar cada passo sozinho (pelo `/docs`) antes de subir para o próximo.
 
 ### Ordem para a Funcionalidade A (Filtro por serviço)
 
@@ -86,7 +243,7 @@ Vamos implementar **de baixo para cima** (do banco até a tela). Por quê? Porqu
 3. **Rota** — novo endpoint `GET /barbearia/estatisticas/ocupacao?data=` em `routes/barbearia_admin_routes.py`.
 4. **Frontend** — tipo `Ocupacao` em `types.ts`, página nova `RelatoriosPage.tsx`, registro no `router.tsx` e item de menu no `AppLayout.tsx`.
 
-> **Nenhuma tabela nova é criada.** A funcionalidade A só lê tabelas existentes (`barbearia` + `servico`). A funcionalidade B só lê (`barbeiro`, `agendamento`, `barbearia`/horários). Ainda assim, há uma seção explicando **como** uma tabela seria registrada, porque é o passo que os alunos mais erram quando a feature exige tabela.
+> **Nenhuma tabela nova é criada.** A funcionalidade A só **lê** tabelas que já existem (`barbearia` + `servico`). A funcionalidade B também só lê (`barbeiro`, `agendamento` e os horários da `barbearia`). Mesmo assim, lá no fim tem uma seção mostrando **como** se registraria uma tabela nova — porque esse é o passo que mais derruba aluno quando a funcionalidade exige uma tabela. Vale guardar para a próxima vez.
 
 ---
 
@@ -122,13 +279,26 @@ ORDER BY b.nome COLLATE NOCASE ASC
 Logo **depois** desse bloco, cole esta nova constante:
 
 ```python
+# Filtra por NOME do serviço (o chip envia um id representativo MIN(id) por
+# nome via OBTER_SERVICOS_DISTINTOS). Casar por sv.id exato deixaria de fora
+# barbearias que oferecem um serviço de MESMO nome porém com outro id. Por isso
+# resolvemos o nome do serviço a partir do id recebido e casamos todas as
+# barbearias que tenham um serviço ativo com aquele nome (case-insensitive).
 OBTER_TODOS_POR_SERVICO = """
 SELECT b.*,
        (SELECT COUNT(*) FROM servico s WHERE s.barbearia_id = b.id AND s.ativo = 1) AS total_servicos,
        (SELECT COUNT(*) FROM barbeiro br WHERE br.barbearia_id = b.id AND br.ativo = 1) AS total_barbeiros
 FROM barbearia b
-INNER JOIN servico sv ON sv.barbearia_id = b.id AND sv.ativo = 1 AND sv.id = ?
 WHERE b.ativa = 1
+  AND EXISTS (
+        SELECT 1
+        FROM servico sv
+        WHERE sv.barbearia_id = b.id
+          AND sv.ativo = 1
+          AND LOWER(sv.nome) = (
+                SELECT LOWER(nome) FROM servico WHERE id = ?
+              )
+      )
   AND (
         ? = ''
         OR LOWER(b.nome) LIKE '%' || LOWER(?) || '%'
@@ -140,13 +310,13 @@ ORDER BY b.nome COLLATE NOCASE ASC
 
 **Explicação linha a linha do que é novo:**
 
-- A única diferença para `OBTER_TODOS` é a linha `INNER JOIN servico sv ON ...`. O `INNER JOIN` garante que só apareçam barbearias que **têm** uma linha em `servico` que casa.
-- `sv.barbearia_id = b.id` — liga o serviço à barbearia.
-- `sv.ativo = 1` — só considera serviços ativos.
-- `sv.id = ?` — o primeiro `?` é o `servico_id` que vamos passar. Como `id` é único, no máximo uma linha de serviço casa por barbearia (não duplica o resultado).
+- A diferença para `OBTER_TODOS` é a condição `AND EXISTS (...)`, que mantém apenas as barbearias que oferecem o serviço escolhido.
+- **Por que casar por NOME e não por `sv.id` exato?** Os chips da HomePage são montados pela query `OBTER_SERVICOS_DISTINTOS`, que agrupa serviços por nome (`GROUP BY LOWER(nome)`) e envia apenas **um id representativo** (`MIN(id)`) por nome. Como o mesmo serviço (ex.: "Corte + Barba") existe em várias barbearias com **ids diferentes**, filtrar por `sv.id = ?` retornaria só a barbearia dona daquele id específico — escondendo as demais. Casando pelo **nome** do serviço, todas as barbearias que oferecem aquele serviço aparecem corretamente.
+- `SELECT LOWER(nome) FROM servico WHERE id = ?` — resolve o nome do serviço a partir do id representativo enviado pelo chip. O primeiro `?` é o `servico_id`.
+- `EXISTS (SELECT 1 FROM servico sv WHERE sv.barbearia_id = b.id AND sv.ativo = 1 AND LOWER(sv.nome) = ...)` — só mantém barbearias que têm um serviço ativo com aquele nome. `LOWER(...)` deixa a comparação insensível a maiúsculas/minúsculas.
 - Os outros três `?` continuam sendo o termo de busca `q` (repetido 3 vezes, igual à query original).
-- **Ordem dos parâmetros é importante:** `(servico_id, termo, termo, termo)`. O `servico_id` vem **primeiro** porque o `?` dele aparece antes no SQL.
-- Sempre usamos `?` (prepared statement), **nunca** f-string. Isso evita injeção de SQL.
+- **A ordem dos parâmetros importa:** `(servico_id, termo, termo, termo)`. O `servico_id` vem **primeiro** porque o `?` dele aparece antes no SQL (lá dentro do `EXISTS`). Os `?` são preenchidos na mesma ordem em que aparecem.
+- Sempre usamos `?` (chamado "prepared statement" — o banco substitui os `?` pelos valores de forma segura), **nunca** montamos a query colando texto com f-string. Por quê? Porque colar texto direto abre a porta para o "SQL injection": um usuário mal-intencionado poderia digitar um pedaço de comando SQL no campo de busca e bagunçar o banco. Com `?`, isso não acontece.
 
 ## Passo A2 — Repo: nova função que usa a query
 
@@ -205,8 +375,9 @@ def obter_todos(q: str = "") -> list[Barbearia]:
 def obter_todos_por_servico(servico_id: int, q: str = "") -> list[Barbearia]:
     """Lista barbearias ativas que oferecem o serviço informado (ativo).
 
-    Mesmo filtro de nome/endereço de ``obter_todos``, mas com JOIN em
-    ``servico`` para restringir às barbearias que têm o serviço ``servico_id``.
+    Mesmo filtro de nome/endereço de ``obter_todos``. O ``servico_id`` é o id
+    representativo enviado pelo chip; a query resolve o NOME desse serviço e
+    retorna todas as barbearias que oferecem um serviço ativo com aquele nome.
     """
     termo = (q or "").strip()
     with obter_conexao() as conn:
@@ -219,7 +390,7 @@ def obter_todos_por_servico(servico_id: int, q: str = "") -> list[Barbearia]:
 **Explicação:**
 
 - A assinatura segue o padrão do projeto: parâmetros simples, retorno `list[Barbearia]`.
-- `with obter_conexao() as conn:` — abre a conexão com o banco. Esse helper já liga `PRAGMA foreign_keys = ON`, define `row_factory = sqlite3.Row` (para acessar colunas por nome) e faz commit automático ao sair do `with`. **Não** chame `commit()` manualmente.
+- `with obter_conexao() as conn:` — abre a conexão com o banco. Esse "ajudante" (helper) já liga a verificação de chaves estrangeiras (`PRAGMA foreign_keys = ON`), configura o acesso às colunas por nome (`row_factory = sqlite3.Row`) e salva as mudanças automaticamente ao terminar o bloco `with`. Por isso você **não** precisa chamar `commit()` na mão.
 - `cursor.execute(OBTER_TODOS_POR_SERVICO, (servico_id, termo, termo, termo))` — passa os 4 parâmetros como **tupla**, na ordem exata dos `?` do SQL.
 - `[_row_to_barbearia(row) for row in rows]` — converte cada linha (`sqlite3.Row`) na entidade de domínio `Barbearia` usando o helper que já existe no arquivo. Reaproveitamos `_row_to_barbearia`, então `total_servicos` e `total_barbeiros` continuam preenchidos.
 
@@ -506,7 +677,7 @@ function Chip({
 - `import type { BarbeariaResumo, Servico } from '../lib/types'` — importamos também o tipo `Servico`, que já existe em `types.ts`.
 - `const [servicoId, setServicoId] = useState<number | null>(null)` — guarda qual serviço está selecionado. `null` = "Todos".
 - O **primeiro** `useEffect` carrega a lista de serviços (para os chips) com `api.get<Servico[]>('/barbearias/servicos')`. Se falhar, fica silencioso — a busca por nome continua funcionando.
-- O **segundo** `useEffect` depende de `[query, servicoId]`: sempre que o texto **ou** o serviço selecionado mudam, refaz a chamada.
+- O **segundo** `useEffect` depende de `[query, servicoId]`: sempre que o texto **ou** o serviço selecionado mudam, ele refaz a busca. O `setTimeout` de 300ms é um "debounce": em vez de chamar o backend a cada letra digitada, ele espera você parar de digitar por um instante. Isso evita disparar dezenas de chamadas seguidas enquanto você digita.
 - `params: { q: q || undefined, servico_id: servicoId ?? undefined }` — o `api.ts` monta a query string automaticamente e **ignora** valores `undefined`. Então, quando `servicoId` é `null` (vira `undefined`), o param `servico_id` simplesmente **não** é enviado, e o backend lista todas as barbearias.
 - Os caminhos no front são **relativos a `/api`**: escrevemos `/barbearias`, não `/api/barbearias`. O `api.ts` adiciona o prefixo.
 - O `<Chip>` usa estilos inline com os tokens de cor do projeto (`#25343F` é o `ink`). **Não** usamos Bootstrap nem CSS externo, seguindo a convenção do VouDeBarba.
@@ -526,7 +697,7 @@ No final do arquivo, adicione:
 
 ```python
 OBTER_SERVICOS_DISTINTOS = """
-SELECT MIN(id) AS id, nome, '' AS descricao, 0 AS preco, 0 AS duracao_min, 1 AS ativo
+SELECT MIN(id) AS id, 0 AS barbearia_id, nome, '' AS descricao, 0 AS preco, 0 AS duracao_min, 1 AS ativo
 FROM servico
 WHERE ativo = 1
 GROUP BY LOWER(nome)
@@ -534,9 +705,9 @@ ORDER BY nome COLLATE NOCASE ASC
 """
 ```
 
-**Explicação:** agrupamos por `nome` (em minúsculo) para não repetir o mesmo serviço de barbearias diferentes. `MIN(id)` pega um id qualquer daquele nome (serve para usar como `servico_id` no filtro). As colunas `descricao/preco/duracao_min/ativo` são preenchidas com valores neutros só para que o `_row_to_servico` consiga montar o objeto `Servico`.
+**Explicação:** agrupamos por `nome` (em minúsculo) para não repetir o mesmo serviço de barbearias diferentes. `MIN(id)` pega um id qualquer daquele nome (serve para usar como `servico_id` no filtro). As colunas `barbearia_id/descricao/preco/duracao_min/ativo` são preenchidas com valores neutros só para que o `_row_to_servico` consiga montar o objeto `Servico`. **Atenção:** o `_row_to_servico` lê `row["barbearia_id"]`, então o `SELECT` precisa expor essa coluna (`0 AS barbearia_id`) — sem ela o endpoint quebra com `IndexError: No item with that key`.
 
-> **Observação didática:** filtrar por um `servico_id` que representa "Corte" de uma barbearia não filtra "Corte" de outra (são ids diferentes). Para um MVP isso é aceitável — o objetivo aqui é você aprender o caminho full-stack. Em produção, o filtro ideal seria por **nome** de serviço. Mantemos por id para ficar simples e dentro do escopo (`?servico_id`).
+> **Observação didática:** o chip envia um `servico_id` **representativo** (`MIN(id)` daquele nome). Como o mesmo serviço (ex.: "Corte + Barba") existe em várias barbearias com **ids diferentes**, o filtro **não** casa por `sv.id` exato — se casasse, retornaria só a barbearia dona daquele id e esconderia as demais. Por isso a query `OBTER_TODOS_POR_SERVICO` (passo A2) resolve o **nome** do serviço a partir do id recebido e casa **todas** as barbearias que oferecem um serviço ativo com aquele nome. Assim, clicar em "Corte + Barba" mostra todas as barbearias que têm esse serviço.
 
 ### A5.2 — Repo
 
@@ -599,11 +770,11 @@ Pronto: a Funcionalidade A está completa, backend e frontend.
 
 # PARTE B — Relatório de ocupação do barbeiro
 
-Agora a funcionalidade do dono da barbearia.
+Agora vamos para a funcionalidade do dono da barbearia.
 
 ## Entendendo o cálculo
 
-Para um **dia** escolhido e para **cada barbeiro** da barbearia:
+Antes de programar, entenda **a conta** que o relatório faz. Para um **dia** escolhido e para **cada barbeiro** da barbearia:
 
 - **Minutos disponíveis** = duração do expediente da barbearia naquele dia da semana. Ex.: das `09:00` às `18:00` = 9h = `540` minutos. Se a barbearia estiver fechada nesse dia, disponíveis = `0`.
 - **Minutos ocupados** = soma da duração (`duracao_min` do serviço) de todos os agendamentos do barbeiro naquele dia cujo status seja `Agendado` **ou** `Realizado` (cancelados não contam).
@@ -1234,7 +1405,7 @@ Verifique no log que as tabelas foram criadas e os routers incluídos, sem erro.
 
 ```bash
 cd frontend
-npm run dev
+bun run dev
 ```
 
 ### 3. Teste a Funcionalidade A (filtro por serviço)
@@ -1242,17 +1413,29 @@ npm run dev
 1. Abra `http://localhost:5185/` (HomePage, pública).
 2. Você deve ver os **chips de serviço** acima da lista de barbearias (incluindo o chip "Todos").
 3. Clique em um serviço. A lista deve mostrar **só** as barbearias que oferecem aquele serviço.
-4. Clique em "Todos" para voltar à lista completa.
-5. Combine com a busca por texto — os dois filtros funcionam juntos.
+4. **Teste um serviço compartilhado:** clique no chip **"Corte + Barba"** — esse serviço é oferecido por **duas** barbearias no seed (Barbearia Dom Bigode e Navalha & Cia), então **ambas** devem aparecer. Esse é o caso que prova que o filtro casa por nome (e não por id exato).
 
-Pelo `/docs`: teste `GET /api/barbearias?servico_id=1` e `GET /api/barbearias/servicos`.
+   ![Chip "Corte + Barba" selecionado, mostrando as duas barbearias que oferecem esse serviço](img/aluno2/02_chip_corte_barba_duas_barbearias.png)
+
+5. Clique em "Todos" para voltar à lista completa.
+6. Combine com a busca por texto — os dois filtros funcionam juntos. Quando não sobra nenhum resultado, aparece a mensagem de "lista vazia" (o EmptyState) "Nenhuma barbearia encontrada para este filtro.".
+
+   ![Tela de lista vazia: nenhuma barbearia encontrada para o filtro escolhido](img/aluno2/03_empty_state_filtro.png)
+
+Pelo `/docs`: teste `GET /api/barbearias?servico_id=3` (id representativo de "Corte + Barba") — deve retornar **as duas** barbearias que oferecem esse serviço, não só uma. Teste também `GET /api/barbearias/servicos` (lista de chips, nomes distintos).
 
 ### 4. Teste a Funcionalidade B (relatório de ocupação)
 
 1. Faça login como `dom@voudebarba.com` (senha `1234aA@#`). Você será redirecionado para `/agenda`.
 2. No menu do topo, clique em **Relatórios**.
-3. A página `/relatorios` mostra a barra de ocupação por barbeiro para **hoje**.
-4. Mude a data no seletor. Escolha um dia que tenha agendamentos (o seed cria agendamentos em volta de hoje). Os percentuais devem mudar.
+3. A página `/relatorios` mostra a barra de ocupação por barbeiro para **hoje**. Num dia tranquilo, as barras ficam verdes (pouca ocupação):
+
+   ![Relatório de ocupação do dia de hoje, com barras verdes indicando baixa ocupação](img/aluno2/04_relatorio_ocupacao_hoje.png)
+
+4. Mude a data no seletor. Escolha um dia que tenha agendamentos (o seed cria agendamentos em volta de hoje). Os percentuais devem mudar — e, conforme sobem, a cor da barra também muda: verde (tranquilo), laranja (movimentado) e vermelho (lotado).
+
+   ![Relatório de outro dia, com barras laranja e vermelha indicando ocupação alta](img/aluno2/05_relatorio_cores_laranja_vermelho.png)
+
 5. Confira a lista detalhada abaixo do gráfico: `minutos_ocupados / minutos_disponiveis · percentual`.
 
 ### 5. (Opcional) Verificação de tipos e build
@@ -1261,8 +1444,8 @@ Antes de considerar pronto, rode no frontend:
 
 ```bash
 cd frontend
-npx tsc -b --noEmit
-npm run lint
+bunx tsc -b --noEmit
+bun run lint
 ```
 
 E os testes do backend (se houver testes relacionados):
@@ -1310,7 +1493,7 @@ Marque conforme for concluindo:
 
 ### Funcionalidade A — Filtro por serviço
 
-- [ ] `backend/sql/barbearia_sql.py` — adicionada `OBTER_TODOS_POR_SERVICO` (com `INNER JOIN servico`).
+- [ ] `backend/sql/barbearia_sql.py` — adicionada `OBTER_TODOS_POR_SERVICO` (com `EXISTS` casando pelo NOME do serviço).
 - [ ] `backend/repo/barbearia_repo.py` — importada a query e criada `obter_todos_por_servico(...)`.
 - [ ] `backend/routes/barbearias_routes.py` — rota `listar` aceita `servico_id` e chama a função certa.
 - [ ] `backend/sql/servico_sql.py` — adicionada `OBTER_SERVICOS_DISTINTOS` (passo A5).
@@ -1334,7 +1517,7 @@ Marque conforme for concluindo:
 
 - [ ] Conferi que **não** precisei adicionar tabela em `TABELAS` (repo de relatório não tem tabela).
 - [ ] Conferi que **não** precisei adicionar router em `ROUTERS` (reusei routers existentes).
-- [ ] `npx tsc -b --noEmit` passou sem erros de tipo.
+- [ ] `bunx tsc -b --noEmit` passou sem erros de tipo.
 - [ ] Backend sobe sem erro no log; `/docs` mostra os novos endpoints.
 
 Parabéns! Se todas as caixas estão marcadas, as duas funcionalidades estão completas e funcionando de ponta a ponta.

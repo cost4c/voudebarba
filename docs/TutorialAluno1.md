@@ -1,17 +1,162 @@
 # Tutorial passo a passo — Avaliação do atendimento + Faturamento do dia
 
-> Público: aluno de graduação com **muita** dificuldade. Aqui não pulamos nada.
-> Se você seguir cada passo **ao pé da letra**, no fim a feature funciona.
-> Leia devagar. Não tenha pressa. Copie os trechos exatamente como estão.
+> Este tutorial foi feito para quem está começando. Não pulamos nenhum passo.
+> Se você seguir cada passo **exatamente como está escrito**, no fim tudo funciona.
+> Leia com calma. Não tenha pressa. Copie os trechos exatamente como aparecem aqui.
+
+---
+
+## 0. Preparando o computador (faça isso antes de tudo)
+
+Antes de mexer no código, você precisa deixar o computador pronto. Esta seção ensina do zero: instalar os programas, baixar o projeto, ligar o backend e o frontend, e criar um espaço seguro para trabalhar. Não pule nada aqui — sem isso, o resto do tutorial não roda.
+
+### 0.1. Os programas que você vai instalar
+
+Você precisa de quatro programas. Vou explicar para que serve cada um e como instalar.
+
+**1) Git** — é o programa que baixa o projeto da internet e guarda o histórico das suas mudanças. Pense nele como um "controle de versão": ele lembra de tudo que você alterou e deixa você voltar atrás se errar.
+
+- Windows: baixe em https://git-scm.com/download/win e instale clicando em "Avançar" até o fim.
+- macOS: rode `xcode-select --install` no Terminal, ou baixe em https://git-scm.com/download/mac.
+- Linux (Ubuntu/Debian): rode `sudo apt install git`.
+
+Para conferir se instalou, abra o terminal e digite:
+
+```bash
+git --version
+```
+
+Se aparecer algo como `git version 2.43.0`, deu certo.
+
+**2) Python 3.11 ou mais novo** — é a linguagem em que o backend (o "servidor" que guarda os dados) foi escrito. Baixe em https://www.python.org/downloads/ e instale.
+
+> ⚠️ **Atenção importante:** o projeto tem um arquivo chamado `.python-version` que pede o Python 3.14. Essa versão pode nem existir ainda na sua máquina. Não se preocupe: mais adiante você vai criar o ambiente do projeto usando o **Python 3.11**, que é estável e funciona. Na hora de criar a venv (passo 0.5), use `python3.11` no lugar de `python` se tiver mais de uma versão instalada.
+
+Para conferir a versão instalada:
+
+```bash
+python --version
+```
+
+(No Windows às vezes o comando é `py --version`; no macOS/Linux costuma ser `python3 --version`.) Você precisa ver `Python 3.11.x` ou maior.
+
+**3) Bun** — é o programa que cuida da parte do frontend (a "tela", o que aparece no navegador). Ele baixa as bibliotecas e roda o site enquanto você desenvolve. Neste projeto, o Bun é o programa oficial para isso — **não use npm**.
+
+- macOS/Linux: rode `curl -fsSL https://bun.sh/install | bash`.
+- Windows: rode `powershell -c "irm bun.sh/install.ps1 | iex"`.
+
+Para conferir:
+
+```bash
+bun --version
+```
+
+Se aparecer um número de versão (ex.: `1.1.20`), está pronto.
+
+**4) VSCode** — é o editor de código onde você vai escrever e ler os arquivos. Baixe em https://code.visualstudio.com/ e instale. É de graça.
+
+### 0.2. Baixar o projeto (clonar o repositório)
+
+"Clonar" quer dizer baixar uma cópia completa do projeto para o seu computador. Abra o terminal numa pasta onde você queira guardar o projeto e rode:
+
+```bash
+git clone https://github.com/cost4c/voudebarba.git
+```
+
+Isso cria uma pasta `voudebarba` com tudo dentro. Entre nela:
+
+```bash
+cd voudebarba
+```
+
+Abra essa pasta no VSCode (menu **File → Open Folder**, ou rode `code .` no terminal).
+
+### 0.3. Criar um espaço seguro para trabalhar (uma branch)
+
+Antes de escrever qualquer código, vamos criar uma **branch**. Uma branch é como uma cópia paralela do projeto onde você trabalha sem bagunçar a versão principal (chamada `main`). Por quê? Porque se algo der errado, você simplesmente apaga a branch e a versão principal continua intacta. É a sua rede de segurança. Rode:
+
+```bash
+git checkout -b minha-feature
+```
+
+Esse comando cria a branch `minha-feature` e já te coloca dentro dela. Tudo que você fizer daqui em diante fica guardado nela.
+
+### 0.4. Instalar as bibliotecas do frontend
+
+O frontend depende de várias bibliotecas prontas. O Bun baixa todas de uma vez. A partir da pasta `frontend/`:
+
+```bash
+bun install
+```
+
+Espere terminar (pode demorar um pouco na primeira vez).
+
+### 0.5. Criar o ambiente do backend (a venv) e instalar as bibliotecas
+
+A **venv** (ambiente virtual) é uma "caixinha" isolada onde ficam só as bibliotecas deste projeto, sem misturar com o resto do seu computador. Isso evita conflitos. A partir da pasta `backend/`, crie a venv usando o Python 3.11:
+
+```bash
+python3.11 -m venv .venv
+```
+
+(Se na sua máquina o comando do Python 3.11 for outro, ajuste. O importante é que a venv use o 3.11, não a versão do `.python-version`.)
+
+Agora **ative** a venv (ligar a caixinha):
+
+```bash
+# macOS / Linux:
+source .venv/bin/activate
+# Windows (PowerShell):
+.venv\Scripts\Activate.ps1
+```
+
+Quando ativada, aparece `(.venv)` no começo da linha do terminal. Com ela ligada, instale as bibliotecas do projeto:
+
+```bash
+pip install -r requirements.txt
+```
+
+### 0.6. Extensões do VSCode (instale e ative cada uma)
+
+Extensões deixam o VSCode mais esperto: ele entende o código, avisa erros e fica mais bonito. Abra o VSCode, clique no ícone de blocos na barra lateral (Extensions) e instale estas, uma a uma. Ao lado de cada nome explico em uma linha para que serve:
+
+- **Python** — dá suporte básico à linguagem Python (rodar, depurar, reconhecer arquivos `.py`).
+- **Pylance** — corretor inteligente que entende os tipos do Python e sublinha erros antes de você rodar.
+- **Python Debugger** — deixa você pausar o código e olhar o que está acontecendo passo a passo.
+- **Python Environments** — ajuda a escolher e gerenciar a venv certa dentro do editor.
+- **ESLint** — aponta problemas no código do frontend (JavaScript/TypeScript) enquanto você digita.
+- **SQLite3 Editor** — abre e mostra o banco de dados do projeto direto no editor, sem programa extra.
+- **vscode-icons** — coloca ícones bonitos nas pastas e arquivos, fica mais fácil de achar as coisas.
+- **HTML CSS Support** — completa nomes de classes e tags ao escrever HTML/CSS.
+
+> Dica: depois de instalar a extensão Python, abra qualquer arquivo `.py` e, no canto inferior do VSCode, escolha o interpretador da `.venv` que você criou no passo 0.5.
+
+### 0.7. Conferir se tudo está de pé
+
+Com a venv ativada, ligue o backend a partir da pasta `backend/`:
+
+```bash
+.venv/bin/python main.py
+```
+
+E, em **outro terminal**, ligue o frontend a partir da pasta `frontend/`:
+
+```bash
+bun run dev
+```
+
+Se o backend subir em `http://localhost:8415` e o frontend em `http://localhost:5185`, está tudo pronto. Agora sim podemos começar.
 
 ---
 
 ## 1. O que você vai construir
 
-Você vai implementar **duas features** no app **VouDeBarba**, cada uma indo do banco de dados até a tela (isso se chama "full-stack", ou "ponta a ponta"):
+Você vai criar **duas funcionalidades** novas no app **VouDeBarba**. Cada uma vai do banco de dados até a tela do usuário. Quando uma funcionalidade percorre todas essas camadas — do servidor que guarda os dados até o que o usuário vê — chamamos isso de "full-stack" (ou "ponta a ponta"):
 
 - **(A) Avaliação do atendimento pelo cliente.** Depois que um agendamento vira **Realizado**, o cliente poderá dar uma **nota de 1 a 5** e um **comentário** para aquele atendimento. A barbearia passa a exibir a **média das notas** na sua página de detalhe.
 - **(B) Faturamento do dia.** O dono da barbearia verá, no topo da sua agenda, um **resumo do dia**: quantos agendamentos estão Agendados / Realizados / Cancelados e o **total faturado** (soma do preço dos serviços dos agendamentos Realizados naquele dia).
+
+No fim, você terá entregue todos estes itens. Aqui aparece a palavra **endpoint**: um endpoint é simplesmente um "endereço" da API que o frontend chama para fazer ou buscar alguma coisa (por exemplo, "registrar uma avaliação" ou "pegar os dados de uma barbearia"). Cada endpoint tem um caminho (a URL) e um verbo (`GET` para buscar, `POST` para criar, e por aí vai).
 
 Resultado final, em lista:
 
@@ -25,60 +170,65 @@ Resultado final, em lista:
 
 ---
 
-## 2. Pré-requisitos: rodar backend e frontend
+## 2. Ligar o backend e o frontend para testar
 
-Você precisa do app rodando para testar. São **dois processos** (dois terminais abertos ao mesmo tempo).
+Para testar, o app precisa estar ligado. São **dois programas rodando ao mesmo tempo** (você vai abrir dois terminais).
 
 ### 2.1. Subir o backend
 
-O `.python-version` aponta para uma versão do Python que pode não estar instalada. **Sempre** use o interpretador que já está no `.venv`. A partir da pasta `backend/`:
+Lembra que o `.python-version` pede uma versão do Python que pode não existir na sua máquina? Por isso, **sempre** use o Python que está dentro do `.venv` que você criou na seção 0. A partir da pasta `backend/`:
 
 ```bash
 backend/.venv/bin/python main.py
 ```
 
-Isso sobe a API em `http://localhost:8415`. A documentação interativa (Swagger) fica em `http://localhost:8415/docs` — você vai usar bastante para testar.
+Isso liga a API em `http://localhost:8415`. Tem uma página de documentação interativa (o Swagger) em `http://localhost:8415/docs`. Você vai usar bastante para testar a API sem precisar do frontend.
 
-> ⚠️ Não rode o container Docker local ao mesmo tempo: ambos disputam a porta 8415.
+> ⚠️ Não rode o container Docker local ao mesmo tempo: os dois brigam pela porta 8415.
 
 ### 2.2. Subir o frontend
 
 Em **outro terminal**, a partir da pasta `frontend/`:
 
 ```bash
-npm run dev
+bun run dev
 ```
 
-Isso sobe o Vite em `http://localhost:5185`. O Vite já faz proxy de `/api` para o backend, então não há problema de CORS.
+Isso liga o Vite em `http://localhost:5185`. O Vite já redireciona os pedidos de `/api` para o backend automaticamente, então você não vai ter aquele erro chato de CORS (bloqueio de pedidos entre endereços diferentes).
 
 ### 2.3. Logins de teste (senha demo `1234aA@#`)
 
 - Cliente: `cliente@voudebarba.com`
 - Dono de barbearia: `dom@voudebarba.com` (também `navalha@`, `oldschool@`, `studio@`)
 
-Guarde esses logins: você precisa do **cliente** para testar a avaliação e do **dono** para testar o faturamento.
+Guarde esses logins: você usa o **cliente** para testar a avaliação e o **dono** para testar o faturamento.
 
 ---
 
-## 3. As camadas e a ordem de implementação
+## 3. As camadas e a ordem em que vamos programar
 
-Este projeto tem camadas bem separadas. No **backend**: `Routes → DTOs → Repos → SQL → Banco`. No **frontend**: `api.ts → types.ts/schemas.ts → página → router.tsx`.
+Este projeto é organizado em **camadas** — cada uma cuida de uma parte. No **backend** a ordem é: `Routes → DTOs → Repos → SQL → Banco`. No **frontend**: `api.ts → types.ts/schemas.ts → página → router.tsx`.
 
-A regra de ouro é: **implemente de baixo para cima**. Primeiro o que está mais perto do banco, depois subindo até a tela. Por quê? Porque cada camada **usa** a de baixo. Se você começa pela tela, não tem o que chamar. Se começa pelo banco, quando chegar na tela tudo que ela precisa já existe e já dá para testar pelo `/docs` antes mesmo de mexer no React.
+A regra de ouro é: **comece por baixo e vá subindo**. Primeiro a parte mais perto do banco de dados, depois vá subindo até chegar na tela. Por quê? Porque cada camada **usa** a de baixo. Se você começar pela tela, não vai ter nada para a tela chamar. Mas se começar pelo banco, quando chegar na tela tudo que ela precisa já vai existir — e você consegue testar pelo `/docs` antes mesmo de mexer no React.
+
+Vão aparecer dois termos novos aqui:
+
+- **DTO** (Data Transfer Object, ou "objeto de transferência de dados") é só um pacotinho que carrega dados de um lado para o outro. O **DTO de entrada** define o formato do que o cliente manda; o **Response** (DTO de saída) define o formato do que o servidor devolve.
+- **CRUD** é a sigla das quatro operações básicas de qualquer dado: **C**riar, **L**er (Read), **A**tualizar (Update) e **D**eletar. Quando falamos "as operações de CRUD da avaliação", são essas ações sobre o banco.
 
 Ordem que vamos seguir:
 
-1. **SQL** (constantes com o texto do `CREATE TABLE`, `INSERT`, `SELECT`…).
-2. **Model** (a entidade `Avaliacao` como `@dataclass`).
-3. **Repo** (funções que conversam com o banco).
-4. **Registrar a tabela no startup** (`main.py` → lista `TABELAS`). ← passo que todo mundo esquece.
-5. **DTO de entrada** (valida a nota 1–5 que o cliente envia).
-6. **Response** (o formato de saída que o front recebe).
+1. **SQL** (textos prontos com os comandos `CREATE TABLE`, `INSERT`, `SELECT`…).
+2. **Model** (a entidade `Avaliacao`, escrita como `@dataclass`).
+3. **Repo** (as funções que conversam com o banco).
+4. **Registrar a tabela quando o app liga** (`main.py` → lista `TABELAS`). ← este é o passo que quase todo mundo esquece.
+5. **DTO de entrada** (confere se a nota está entre 1 e 5 antes de aceitar).
+6. **Response** (o formato de saída que o frontend recebe).
 7. **Rota** (o endpoint em si).
-8. **Registrar o router no startup** quando for um módulo novo (aqui reaproveitamos routers existentes, então não precisa — explico no passo certo).
-9. **Frontend**: `types.ts` → `schemas.ts` → página/UI.
+8. **Registrar a rota quando o app liga** — só é preciso quando você cria um módulo de rotas novo. Aqui vamos aproveitar rotas que já existem, então não precisa (explico na hora certa).
+9. **Frontend**: `types.ts` → `schemas.ts` → página/tela.
 
-Faremos a **feature (A) Avaliação** inteira primeiro, depois a **(B) Faturamento**. Assim você fecha um ciclo completo antes de começar o outro.
+Vamos fazer a **funcionalidade (A) Avaliação** inteira primeiro e depois a **(B) Faturamento**. Assim você fecha um ciclo completo antes de começar o outro.
 
 ---
 
@@ -88,13 +238,13 @@ Faremos a **feature (A) Avaliação** inteira primeiro, depois a **(B) Faturamen
 
 **Caminho:** `backend/sql/avaliacao_sql.py`
 
-Aqui ficam só **strings de SQL**, uma por operação. Nenhuma lógica. Note os detalhes que copiamos do padrão do projeto (veja `backend/sql/agendamento_sql.py`):
+Aqui ficam só os **textos de SQL** (os comandos do banco de dados), um para cada operação. Nada de lógica de programação. Repare nos detalhes que copiamos do padrão do projeto (dê uma olhada em `backend/sql/agendamento_sql.py` para comparar):
 
-- `id INTEGER PRIMARY KEY AUTOINCREMENT`.
-- `agendamento_id` é **UNIQUE**: um agendamento só pode ser avaliado **uma vez**.
-- `criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP`.
-- Chaves estrangeiras (`FOREIGN KEY`) com `ON DELETE CASCADE`.
-- Placeholders `?` (nunca f-string dentro de SQL — isso evita SQL injection).
+- `id INTEGER PRIMARY KEY AUTOINCREMENT` — o banco gera um número de identificação único e crescente para cada linha.
+- `agendamento_id` é **UNIQUE** (único): garante que um mesmo agendamento só pode ser avaliado **uma vez**.
+- `criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP` — guarda automaticamente a data e hora em que a avaliação foi criada.
+- Chaves estrangeiras (`FOREIGN KEY`) com `ON DELETE CASCADE` — ligam a avaliação ao agendamento e à barbearia; se um deles for apagado, a avaliação some junto.
+- Os `?` são "espaços reservados": os valores de verdade entram depois, separados. Nunca monte o SQL juntando texto (f-string), porque isso abre brecha para ataques de SQL injection (quando alguém injeta comando malicioso pelo campo de texto).
 
 ```python
 CRIAR_TABELA = """
@@ -126,7 +276,7 @@ WHERE barbearia_id = ?
 """
 ```
 
-**Por que `UNIQUE`?** Se o cliente tentar avaliar duas vezes o mesmo atendimento, o banco recusa. Vamos também checar isso na rota, mas a constraint é a rede de segurança final.
+**Por que usar `UNIQUE`?** Se o cliente tentar avaliar o mesmo atendimento duas vezes, o próprio banco recusa. Vamos checar isso também na rota, mas o `UNIQUE` é a rede de segurança final — se a checagem da rota falhar por algum motivo, o banco ainda barra.
 
 ---
 
@@ -134,7 +284,7 @@ WHERE barbearia_id = ?
 
 **Caminho:** `backend/model/avaliacao_model.py`
 
-O model é a **entidade de domínio**. No VouDeBarba é sempre um `@dataclass` simples (nunca dict). Espelha as colunas da tabela.
+O model representa a "coisa" com que o sistema trabalha — neste caso, uma avaliação. No VouDeBarba ele é sempre um `@dataclass` simples (nunca um dicionário solto). Os campos dele copiam exatamente as colunas da tabela do banco.
 
 ```python
 from dataclasses import dataclass
@@ -152,7 +302,7 @@ class Avaliacao:
     criado_em: Optional[datetime] = None
 ```
 
-Repare: `id`, `agendamento_id`, `barbearia_id` e `nota` são obrigatórios; `comentario` e `criado_em` têm valor padrão (são opcionais).
+Repare: `id`, `agendamento_id`, `barbearia_id` e `nota` são obrigatórios; já `comentario` e `criado_em` têm um valor padrão, então são opcionais (podem vir vazios).
 
 ---
 
@@ -160,9 +310,9 @@ Repare: `id`, `agendamento_id`, `barbearia_id` e `nota` são obrigatórios; `com
 
 **Caminho:** `backend/repo/avaliacao_repo.py`
 
-O repo são **funções de módulo** (sem classe). Toda conexão usa `with obter_conexao() as conn:` — esse `with` já liga `foreign_keys=ON`, configura `row_factory` e dá **commit automático** ao sair. **Não** chame `commit()` na mão.
+O repo é o que conversa com o banco de dados. Aqui são só **funções soltas** (sem classe). Toda conexão usa `with obter_conexao() as conn:` — esse `with` já liga as chaves estrangeiras (`foreign_keys=ON`), ajusta como as linhas voltam (`row_factory`) e **salva tudo sozinho** quando o bloco termina. Por isso, **não** chame `commit()` na mão — já é feito para você.
 
-Compare com `backend/repo/servico_repo.py` para confirmar o estilo.
+Dê uma olhada em `backend/repo/servico_repo.py` para ver que o estilo é o mesmo.
 
 ```python
 import sqlite3
@@ -234,18 +384,18 @@ def media_por_barbearia(barbearia_id: int) -> tuple[float, int]:
 
 Pontos importantes:
 
-- `inserir` retorna `cursor.lastrowid` (o id novo) — padrão do projeto.
-- `obter_por_agendamento` serve para checar **se o agendamento já foi avaliado** (não deixar avaliar de novo).
-- Em `media_por_barbearia`, quando não há nenhuma avaliação o `AVG` volta `None` e o `COUNT` volta `0`; por isso o tratamento com `if ... is not None`. Arredondamos a média para 2 casas.
-- Os parâmetros do `execute` vão **sempre** como tupla. Tupla de um elemento precisa da vírgula: `(agendamento_id,)`.
+- `inserir` devolve `cursor.lastrowid` (o id que o banco acabou de gerar) — é o padrão do projeto.
+- `obter_por_agendamento` serve para conferir **se aquele agendamento já foi avaliado** (assim a gente não deixa avaliar de novo).
+- Em `media_por_barbearia`, quando ainda não existe nenhuma avaliação o `AVG` volta `None` e o `COUNT` volta `0`. É por isso que tratamos com `if ... is not None`. A média é arredondada para 2 casas decimais.
+- Os valores do `execute` vão **sempre** dentro de uma tupla (uma lista entre parênteses). Quando a tupla tem um só elemento, a vírgula no fim é obrigatória: `(agendamento_id,)`. Sem a vírgula o Python não entende como tupla.
 
 ---
 
-## A.4. Registrar a tabela no startup — EDIÇÃO (passo crítico!)
+## A.4. Registrar a tabela quando o app liga — EDIÇÃO (passo crítico!)
 
 **Caminho:** `backend/main.py`
 
-🚨 **Este é o passo que os alunos mais erram.** Se você não registrar o repo aqui, a tabela `avaliacao` **nunca é criada** e você vai tomar um erro tipo "no such table: avaliacao".
+🚨 **Este é o passo que mais gente esquece.** Se você não registrar o repo aqui, a tabela `avaliacao` **nunca é criada** e você vai cair num erro do tipo "no such table: avaliacao" (em português: "essa tabela não existe").
 
 **Edição 1 — importar o novo repo.** Procure (perto da linha 33) esta linha:
 
@@ -273,7 +423,7 @@ TABELAS = [
 ]
 ```
 
-Adicione a tupla da avaliação **no final** (a ordem importa por causa das chaves estrangeiras: as tabelas referenciadas — `agendamento` e `barbearia` — precisam vir **antes**):
+Adicione a tupla da avaliação **no final** da lista. A ordem importa por causa das chaves estrangeiras: como a avaliação aponta para `agendamento` e `barbearia`, essas duas tabelas precisam ser criadas **antes** dela:
 
 ```python
 TABELAS = [
@@ -288,7 +438,7 @@ TABELAS = [
 ]
 ```
 
-O loop logo abaixo (`for repo, nome in TABELAS: repo.criar_tabela()`) cria a tabela ao subir o app. **Salve, derrube o backend (Ctrl+C) e suba de novo** para a tabela ser criada.
+Logo abaixo tem um laço (`for repo, nome in TABELAS: repo.criar_tabela()`) que percorre essa lista e cria cada tabela quando o app liga. **Salve o arquivo, desligue o backend (Ctrl+C) e ligue de novo** para a tabela ser criada.
 
 ---
 
@@ -296,9 +446,9 @@ O loop logo abaixo (`for repo, nome in TABELAS: repo.criar_tabela()`) cria a tab
 
 **Caminho:** `backend/dtos/avaliacao_dto.py`
 
-O DTO valida o que **chega** do cliente. Usamos `pydantic.BaseModel` + `field_validator`. A nota tem que estar entre 1 e 5. Quando um validador levanta `ValueError`, o handler global transforma em **HTTP 422** automaticamente.
+O DTO confere o que **chega** do cliente antes de o servidor aceitar. Usamos `pydantic.BaseModel` junto com `field_validator` (um "conferidor" de campo). A nota precisa estar entre 1 e 5. Quando o conferidor encontra um valor errado e dispara um `ValueError`, o sistema responde sozinho com o erro **HTTP 422** (que significa "os dados enviados não passaram na validação").
 
-Veja `backend/dtos/servico_dto.py` como referência do estilo.
+Olhe `backend/dtos/servico_dto.py` para ver o mesmo estilo.
 
 ```python
 from typing import Optional
@@ -327,8 +477,8 @@ class AvaliarDTO(BaseModel):
     )
 ```
 
-- `nota` é obrigatória (o `...` em `Field(...)` significa "sem valor padrão, obrigatório").
-- `comentario` aceita vazio e no máximo 500 caracteres (reaproveitamos o validador pronto `validar_comprimento`).
+- `nota` é obrigatória (aquele `...` dentro de `Field(...)` quer dizer exatamente isso: "não tem valor padrão, é obrigatório preencher").
+- `comentario` pode vir vazio e tem no máximo 500 caracteres (aqui aproveitamos o conferidor pronto `validar_comprimento`, em vez de escrever um novo).
 
 ---
 
@@ -336,7 +486,7 @@ class AvaliarDTO(BaseModel):
 
 **Caminho:** `backend/dtos/responses/avaliacao_response.py`
 
-O Response é o formato que o **front recebe**. Tem uma classmethod-fábrica `de_avaliacao(model)` que converte a entidade. Padrão idêntico ao de `servico_response.py`.
+O Response é o formato que o **frontend recebe** de volta. Ele tem um método "fábrica" chamado `de_avaliacao(model)`, que pega a entidade (o model) e monta o Response a partir dela. É o mesmo padrão de `servico_response.py`.
 
 ```python
 from typing import Optional
@@ -372,7 +522,7 @@ class AvaliacaoResponse(BaseModel):
 
 **Caminho:** `backend/routes/agendamentos_routes.py`
 
-Vamos **adicionar** uma rota no router que **já existe** (`/agendamentos`). Como o módulo já está registrado em `main.py` (lista `ROUTERS`), **não precisamos** registrar router novo aqui — só editar este arquivo.
+Vamos **acrescentar** uma rota num grupo de rotas que **já existe** (o `/agendamentos`). Esse grupo (chamado de "router") já está registrado no `main.py` (na lista `ROUTERS`), então **não precisamos** registrar nada novo — basta editar este arquivo.
 
 **Edição 1 — imports.** No topo do arquivo, junto dos imports já existentes, adicione o DTO, o Response, o model e o repo da avaliação.
 
@@ -422,7 +572,7 @@ from repo import (
 )
 ```
 
-**Edição 2 — um rate limiter para a avaliação.** Junto dos limiters já existentes (depois de `agendamento_cancelar_limiter`, perto da linha 73), adicione:
+**Edição 2 — um limitador de tentativas para a avaliação.** Um "rate limiter" (limitador de taxa) impede que alguém dispare o mesmo pedido vezes demais em pouco tempo — protege contra abuso. Junto dos limitadores que já existem (depois de `agendamento_cancelar_limiter`, perto da linha 73), adicione:
 
 ```python
 agendamento_avaliar_limiter = DynamicRateLimiter(
@@ -434,7 +584,7 @@ agendamento_avaliar_limiter = DynamicRateLimiter(
 )
 ```
 
-**Edição 3 — a rota em si.** Adicione esta função **no fim do arquivo** (depois da rota `cancelar`). Repare em tudo que ela valida: posse do cliente (reaproveitando o helper `_obter_agendamento_do_cliente` que já existe), status Realizado, e se já não foi avaliado.
+**Edição 3 — a rota em si.** Adicione esta função **no fim do arquivo** (depois da rota `cancelar`). Repare em tudo que ela confere antes de aceitar: se o agendamento é mesmo do cliente que está logado (usando a função pronta `_obter_agendamento_do_cliente`), se o status é "Realizado", e se ele ainda não foi avaliado.
 
 ```python
 # =============================================================================
@@ -499,19 +649,19 @@ async def avaliar(
 
 Pontos importantes (são regras do projeto que se repetem em toda rota):
 
-- `@requer_autenticacao()` sem argumentos = **qualquer usuário logado** serve (o cliente). O decorator injeta `usuario_logado` nos kwargs; por isso o parâmetro é `Optional[UsuarioLogado] = None` e o corpo começa com `assert usuario_logado is not None`.
-- `checar_rate_limit(...)` é a primeira linha útil.
-- `_obter_agendamento_do_cliente(id, usuario_logado)` já existe no arquivo e cuida dos erros 404 (não existe) e 403 (não é do cliente). **Reaproveite, não reescreva.**
-- Sempre **re-lemos** (`obter_por_agendamento`) e devolvemos o Response após gravar.
-- Nunca montamos JSON de erro à mão — usamos `HTTPException`.
+- `@requer_autenticacao()` sem nada entre parênteses quer dizer: **qualquer usuário logado** pode usar (no caso, o cliente). Essa linha de cima da função (chamada de "decorator", ela "decora"/acrescenta um comportamento à função) entrega o `usuario_logado` para a função. É por isso que o parâmetro vem como `Optional[UsuarioLogado] = None` e o corpo começa com `assert usuario_logado is not None` (garantindo que ele de fato chegou).
+- `checar_rate_limit(...)` é a primeira coisa útil a rodar — aplica o limitador de tentativas.
+- `_obter_agendamento_do_cliente(id, usuario_logado)` já existe no arquivo e cuida dos erros 404 (agendamento não existe) e 403 (existe, mas não é desse cliente). **Aproveite essa função, não reescreva.**
+- Depois de gravar, sempre **lemos de novo** (`obter_por_agendamento`) e devolvemos o Response com o dado fresquinho do banco.
+- Nunca montamos o JSON de erro na mão — usamos sempre `HTTPException`.
 
-> Observação: o caminho final desta rota é `POST /api/agendamentos/{id}/avaliar`. O `/api` vem do prefixo global; o `/agendamentos` vem do `APIRouter(prefix="/agendamentos")`.
+> Observação: o caminho completo desta rota é `POST /api/agendamentos/{id}/avaliar`. O `/api` vem do prefixo global; o `/agendamentos` vem do `APIRouter(prefix="/agendamentos")`.
 
 ---
 
 ## A.8. Incluir a média no detalhe da barbearia — EDIÇÕES
 
-A média de avaliações precisa sair junto no `GET /api/barbearias/{id}`. Mexemos em **dois** lugares: no Response da barbearia (campo novo) e na rota que monta esse Response.
+A média de avaliações precisa vir junto quando alguém chama `GET /api/barbearias/{id}`. Para isso, mexemos em **dois** lugares: no Response da barbearia (criando campos novos) e na rota que monta esse Response.
 
 ### A.8.1. Adicionar os campos no Response — EDIÇÃO
 
@@ -547,7 +697,7 @@ Adicione `media_avaliacoes` e `total_avaliacoes` (logo após `total_barbeiros`):
     servicos: list[ServicoResponse] = Field(default_factory=list)
 ```
 
-Agora atualize a fábrica `de_barbearia` para **receber** e **repassar** esses valores. A assinatura atual é:
+Agora atualize a fábrica `de_barbearia` para **receber** e **repassar** esses valores. A primeira linha dela (a "assinatura", que lista os parâmetros) hoje é:
 
 ```python
     @classmethod
@@ -595,7 +745,7 @@ E dentro do `return cls(...)`, adicione as duas linhas (logo após `total_barbei
         )
 ```
 
-> Como demos **valor padrão** aos novos parâmetros, a outra chamada de `de_barbearia` (no `barbearia_admin_routes.py`, função `_montar_detalhe`) continua funcionando sem alteração. A média lá fica 0; e tudo bem, a tela do dono não usa.
+> Como demos um **valor padrão** aos parâmetros novos, o outro lugar que chama `de_barbearia` (no `barbearia_admin_routes.py`, função `_montar_detalhe`) continua funcionando sem precisar mudar nada. Lá a média fica em 0, e tudo bem: a tela do dono não usa esse número.
 
 ### A.8.2. Calcular e passar a média na rota pública — EDIÇÃO
 
@@ -655,7 +805,7 @@ Calcule a média e passe-a:
     )
 ```
 
-Pronto — o backend da feature (A) está completo. **Reinicie o backend** e já dá para testar no `/docs`.
+Pronto — o backend da funcionalidade (A) está completo. **Reinicie o backend** e já dá para testar no `/docs`.
 
 ---
 
@@ -665,7 +815,7 @@ Pronto — o backend da feature (A) está completo. **Reinicie o backend** e já
 
 **Caminho:** `frontend/src/lib/types.ts`
 
-Os tipos do front têm que **bater exato** com os Response do backend. Faça duas edições.
+Os tipos do frontend precisam ter **exatamente os mesmos campos** que os Response do backend — mesmos nomes, mesmos tipos. Se um lado tiver um campo que o outro não tem, as coisas param de bater. Faça duas edições.
 
 **Edição 1 — adicionar os campos de média em `BarbeariaDetalhe`.** Procure:
 
@@ -707,7 +857,7 @@ export interface Avaliacao {
 
 **Caminho:** `frontend/src/lib/schemas.ts`
 
-O Zod valida o formulário **no cliente**, espelhando o DTO Pydantic do backend (validação dupla). Adicione no fim do arquivo:
+O Zod é uma biblioteca que confere o formulário **no navegador**, antes de enviar. Ele copia as mesmas regras do DTO (Pydantic) do backend. Assim a checagem acontece duas vezes: uma no navegador (resposta rápida para o usuário) e outra no servidor (segurança de verdade). Adicione no fim do arquivo:
 
 ```typescript
 // Espelha backend/dtos/avaliacao_dto.py (AvaliarDTO)
@@ -722,7 +872,7 @@ export const avaliarSchema = z.object({
 export type AvaliarForm = z.infer<typeof avaliarSchema>
 ```
 
-`z.coerce.number` converte string para número (útil porque inputs vêm como string). `min`/`max` espelham a regra 1–5 do backend.
+`z.coerce.number` transforma texto em número (útil porque os campos de formulário sempre chegam como texto). `min` e `max` copiam a regra de 1 a 5 do backend.
 
 ---
 
@@ -730,11 +880,11 @@ export type AvaliarForm = z.infer<typeof avaliarSchema>
 
 **Caminho:** `frontend/src/pages/AppointmentsPage.tsx`
 
-Vamos adicionar, nos cartões do **Histórico** (que contém os Realizados), um botão **Avaliar** que abre um modal simples para escolher a nota e enviar.
+Vamos adicionar, nos cartões da seção **Histórico** (onde ficam os atendimentos Realizados), um botão **Avaliar** que abre um pequeno painel para escolher a nota e enviar.
 
-Para manter simples e seguir o padrão de feedback do projeto (toast, nunca `alert`), faremos um modal pequeno com `pedirConfirmacao` não serve aqui (precisamos de input). Então usaremos um estado local controlando qual agendamento está sendo avaliado, com um pequeno painel inline.
+Para manter simples e seguir o jeito do projeto de dar retorno ao usuário (o "toast", aquele aviso que aparece e some — nunca o `alert` do navegador), vamos abrir um painel ali mesmo no cartão. O `pedirConfirmacao` não serve aqui, porque ele só faz uma pergunta de sim/não e nós precisamos de campos para digitar. Então vamos guardar, numa variável de estado, qual agendamento está sendo avaliado, e mostrar o painel logo abaixo desse cartão.
 
-**Edição 1 — imports.** No topo, adicione `useState` já está importado; adicione o import do schema e do tipo Avaliacao:
+**Edição 1 — imports.** No topo, o `useState` já está importado; adicione o import do schema e do tipo Avaliacao:
 
 Procure:
 
@@ -753,7 +903,7 @@ import type { Agendamento } from '../lib/types'
 import { avaliarSchema } from '../lib/schemas'
 ```
 
-**Edição 2 — estado e função de envio.** Dentro do componente `AppointmentsPage`, logo após as declarações de estado existentes (`const [appts, ...]` e `const [carregando, ...]`), adicione:
+**Edição 2 — estado e função de envio.** "Estado" são variáveis que a tela guarda e que, quando mudam, fazem a tela se redesenhar. Dentro do componente `AppointmentsPage`, logo após as declarações de estado que já existem (`const [appts, ...]` e `const [carregando, ...]`), adicione:
 
 ```typescript
   // Qual agendamento está sendo avaliado e a nota escolhida no momento.
@@ -908,13 +1058,17 @@ Substitua por (adiciona um botão **Avaliar** só nos Realizados, e o painel de 
                 </article>
 ```
 
+Depois de salvar, ao clicar em **Avaliar** num atendimento Realizado, o painel aparece logo abaixo do cartão, com as 5 estrelas, o campo de comentário e os botões Enviar/Cancelar:
+
+![Painel de avaliação com estrelas e campo de comentário aberto no cartão](img/aluno1/avaliacao-painel-estrelas.png)
+
 Notas:
 
 - O botão só aparece quando `a.status === StatusAgendamento.REALIZADO`.
-- As estrelas são botões; clicar numa muda `notaSel`.
-- O envio usa `api.post('/agendamentos/${a.id}/avaliar', ...)` (caminho **relativo a `/api`**, sem repetir o prefixo).
-- Feedback sempre via `toast`. Erro 409 (já avaliado / não Realizado) mostra aviso.
-- Nada de `alert`/`confirm` nativos.
+- As estrelas são botões; clicar em uma delas muda o `notaSel`.
+- O envio usa `api.post('/agendamentos/${a.id}/avaliar', ...)` — o caminho é **relativo a `/api`**, então não repita o prefixo `/api`.
+- O retorno ao usuário é sempre pelo `toast`. O erro 409 (já avaliado, ou não Realizado) vira um aviso na tela.
+- Nada de `alert`/`confirm` do navegador.
 
 ---
 
@@ -922,7 +1076,7 @@ Notas:
 
 **Caminho:** `frontend/src/pages/ShopDetailPage.tsx`
 
-Vamos mostrar a média perto do nome da barbearia. Procure, dentro do cabeçalho da barbearia, a linha do nome e a descrição:
+Vamos mostrar a média de notas logo perto do nome da barbearia. Procure, dentro do cabeçalho da barbearia, a linha do nome e a da descrição:
 
 ```tsx
             <h1
@@ -965,10 +1119,14 @@ Logo **abaixo** do `<p>` da descrição, adicione o bloco da média (mostra a no
             )}
 ```
 
-- `shop.media_avaliacoes` e `shop.total_avaliacoes` vêm do tipo que ampliamos no `types.ts`.
-- `.toFixed(1).replace('.', ',')` mostra "4,7" no padrão brasileiro.
+- `shop.media_avaliacoes` e `shop.total_avaliacoes` vêm do tipo que ampliamos lá no `types.ts`.
+- `.toFixed(1).replace('.', ',')` mostra a nota como "4,7" (com vírgula, no padrão brasileiro).
 
-A feature (A) está completa. Agora a (B).
+Com isso, a média aparece abaixo da descrição, no formato "★ 4,0 (1 avaliação)". O bloco só surge quando existe pelo menos uma avaliação:
+
+![Média de avaliações exibida no cabeçalho da página da barbearia](img/aluno1/barbearia-media-estrelas.png)
+
+A funcionalidade (A) está completa. Agora vamos para a (B).
 
 ---
 
@@ -978,7 +1136,7 @@ A feature (A) está completa. Agora a (B).
 
 **Caminho:** `backend/sql/agendamento_sql.py`
 
-Adicione uma constante nova **no fim** do arquivo. Ela conta os agendamentos por status e soma o preço do serviço **só** dos Realizados, num dia. Precisa de `JOIN` com `servico` para pegar o preço.
+Adicione um texto de SQL novo (uma constante) **no fim** do arquivo. Ele conta os agendamentos por status e soma o preço do serviço **só** dos que estão Realizados, dentro de um dia. Para pegar o preço, ele precisa juntar a tabela de agendamentos com a de serviços (isso é o `JOIN`).
 
 ```python
 RESUMO_DO_DIA = """
@@ -996,13 +1154,13 @@ WHERE a.barbearia_id = ? AND date(a.inicio) = ?
 
 Como funciona:
 
-- `COUNT(*)` = total de agendamentos do dia.
-- Cada `SUM(CASE WHEN ... THEN 1 ELSE 0 END)` conta quantos têm aquele status.
-- `SUM(CASE WHEN status='Realizado' THEN s.preco ELSE 0 END)` soma o preço só dos realizados → o faturamento.
-- O `INNER JOIN servico` traz o `preco` de cada agendamento.
-- `date(a.inicio) = ?` filtra pelo dia (a coluna `inicio` é um TIMESTAMP; `date(...)` corta só a parte da data).
+- `COUNT(*)` = quantos agendamentos teve no dia, no total.
+- Cada `SUM(CASE WHEN ... THEN 1 ELSE 0 END)` funciona como um contador: soma 1 para cada agendamento que tem aquele status e 0 para os outros. No fim, vira a contagem daquele status.
+- `SUM(CASE WHEN status='Realizado' THEN s.preco ELSE 0 END)` soma o preço apenas dos atendimentos realizados — esse é o faturamento.
+- O `INNER JOIN servico` é o que junta cada agendamento ao seu serviço, para ter acesso ao `preco`.
+- `date(a.inicio) = ?` filtra por um dia específico. A coluna `inicio` guarda data e hora juntas (um TIMESTAMP); a função `date(...)` corta fora a hora e deixa só a data, para a comparação bater pelo dia.
 
-> Os valores `'Agendado'`, `'Realizado'`, `'Cancelado'` são exatamente os valores do enum `StatusAgendamento` do projeto.
+> Os textos `'Agendado'`, `'Realizado'`, `'Cancelado'` são exatamente os valores que o projeto usa para o status do agendamento (a lista de opções fixas `StatusAgendamento`). Escreva igualzinho, com a mesma capitalização.
 
 ---
 
@@ -1069,7 +1227,7 @@ def resumo_do_dia(barbearia_id: int, data_iso: str) -> dict:
         }
 ```
 
-O `or 0` trata o caso de o `SUM` voltar `None` (quando não há linhas casando).
+O `or 0` cuida do caso em que o `SUM` volta `None` (isso acontece quando nenhuma linha bate com o filtro). Aí, em vez de `None`, devolvemos 0.
 
 ---
 
@@ -1103,7 +1261,7 @@ class ResumoDiaResponse(BaseModel):
         )
 ```
 
-A fábrica `de_resumo` recebe a `data` e o `dict` que o repo devolveu, e monta o Response.
+A fábrica `de_resumo` recebe a `data` e o dicionário que o repo devolveu, e monta o Response a partir deles.
 
 ---
 
@@ -1111,7 +1269,7 @@ A fábrica `de_resumo` recebe a `data` e o `dict` que o repo devolveu, e monta o
 
 **Caminho:** `backend/routes/barbearia_admin_routes.py`
 
-Adicionamos a rota no router que já existe (`/barbearia`), que já está registrado em `main.py`. Não precisa registrar router novo.
+Vamos acrescentar a rota no grupo de rotas que já existe (o `/barbearia`), que já está registrado no `main.py`. Não precisa registrar grupo novo.
 
 **Edição 1 — importar o Response novo.** Procure o bloco de schemas de saída (perto da linha 33):
 
@@ -1140,7 +1298,7 @@ from dtos.responses.resumo_dia_response import ResumoDiaResponse  # <-- novo
 from dtos.responses.servico_response import ServicoResponse
 ```
 
-**Edição 2 — a rota.** Adicione esta função **logo após** a rota `agenda` (a `GET /agenda`, que termina perto da linha 252), antes da rota de `atualizar_status_agendamento`. Reaproveitamos o helper `_obter_barbearia_do_dono` (já existe) e o limiter de leitura (já existe).
+**Edição 2 — a rota.** Adicione esta função **logo após** a rota `agenda` (a `GET /agenda`, que termina perto da linha 252), antes da rota de `atualizar_status_agendamento`. Aqui aproveitamos duas coisas que já existem no arquivo: a função `_obter_barbearia_do_dono` e o limitador de leitura.
 
 ```python
 @router.get("/agenda/resumo", response_model=ResumoDiaResponse)
@@ -1166,14 +1324,14 @@ async def resumo_agenda(
 
 Detalhes:
 
-- `@requer_autenticacao([Perfil.BARBEARIA.value])` exige o perfil Barbearia (401 se anônimo, 403 se outro perfil).
-- `_obter_barbearia_do_dono(usuario_logado)` resolve a barbearia do dono e já garante a posse (escopo). Assim, o dono só vê o resumo **da própria** barbearia.
-- `hoje()` (de `util/datetime_util.py`) dá a data atual tz-aware — nunca use `datetime.now()` direto.
-- Caminho final: `GET /api/barbearia/agenda/resumo?data=YYYY-MM-DD`.
+- `@requer_autenticacao([Perfil.BARBEARIA.value])` exige que o usuário tenha o perfil Barbearia (responde 401 se ninguém está logado, e 403 se for outro tipo de usuário).
+- `_obter_barbearia_do_dono(usuario_logado)` descobre qual é a barbearia daquele dono e já garante que é mesmo dele. Assim, o dono só consegue ver o resumo **da própria** barbearia, nunca da de outra pessoa.
+- `hoje()` (que vem de `util/datetime_util.py`) devolve a data de hoje já com o fuso horário certo. Não use `datetime.now()` direto, porque ele pode pegar o fuso errado.
+- Caminho completo: `GET /api/barbearia/agenda/resumo?data=YYYY-MM-DD`.
 
-> ⚠️ **Ordem de declaração importa.** Declare `/agenda/resumo` **depois** ou **antes** de `/agenda` tanto faz aqui, porque os caminhos são diferentes e o FastAPI casa por correspondência exata. Mas mantenha `/agenda/resumo` no mesmo arquivo, perto da `/agenda`, para ficar organizado.
+> ⚠️ **A ordem em que você declara as rotas importa.** Aqui, declarar `/agenda/resumo` antes ou depois de `/agenda` dá no mesmo, porque os caminhos são diferentes e o FastAPI escolhe pela correspondência exata. Mesmo assim, deixe `/agenda/resumo` no mesmo arquivo e perto de `/agenda`, só para o código ficar organizado.
 
-O backend da feature (B) está pronto. **Reinicie o backend** e teste no `/docs` (lembre de estar logado como dono).
+O backend da funcionalidade (B) está pronto. **Reinicie o backend** e teste no `/docs` (lembre de estar logado como dono).
 
 ---
 
@@ -1195,7 +1353,7 @@ export interface ResumoDia {
 }
 ```
 
-Não precisa de Zod aqui: este endpoint é só leitura (GET), não tem formulário para validar.
+Não precisa de Zod aqui: este endpoint só busca dados (é um `GET`), não tem formulário nenhum para conferir.
 
 ---
 
@@ -1203,7 +1361,7 @@ Não precisa de Zod aqui: este endpoint é só leitura (GET), não tem formulár
 
 **Caminho:** `frontend/src/pages/AgendaPage.tsx`
 
-Vamos buscar o resumo sempre que a data mudar e exibir um card no topo, incluindo o faturamento formatado com `money` (helper de `lib/datas.ts` — não reimplemente formatação de moeda).
+Vamos buscar o resumo toda vez que a data mudar e mostrar um card no topo da tela, com o faturamento já formatado em reais pela função `money` (que vem de `lib/datas.ts` — use ela, não escreva sua própria formatação de dinheiro).
 
 **Edição 1 — imports.** Procure:
 
@@ -1229,10 +1387,18 @@ import type { Agendamento, BarbeariaDetalhe, ResumoDia } from '../lib/types'
   const [resumo, setResumo] = useState<ResumoDia | null>(null)
 ```
 
-E adicione um `useEffect` novo que recarrega o resumo ao trocar a data (coloque logo após o `useEffect` que carrega a agenda do dia):
+E adicione uma função `carregarResumo` e mais um `useEffect` novo, que recarrega o resumo quando você troca a data (coloque logo após o `useEffect` que carrega a agenda do dia). Um `useEffect` é um trecho que roda sozinho quando algo muda — aqui, quando a data muda. Deixamos a função `carregarResumo` separada porque vamos chamá-la também depois de concluir ou cancelar um atendimento (na próxima edição), para o faturamento atualizar **na hora**, sem você precisar trocar de dia:
 
 ```typescript
-  // Resumo do dia (contagens + faturamento) — recarrega ao trocar a data.
+  // Resumo do dia (contagens + faturamento) — recarrega ao trocar a data e
+  // também após concluir/cancelar um atendimento (ver mudarStatus).
+  function carregarResumo() {
+    return api
+      .get<ResumoDia>(`/barbearia/agenda/resumo?data=${date}`)
+      .then((r) => setResumo(r))
+      .catch(() => setResumo(null))
+  }
+
   useEffect(() => {
     let vivo = true
     api
@@ -1247,6 +1413,19 @@ E adicione um `useEffect` novo que recarrega o resumo ao trocar a data (coloque 
       vivo = false
     }
   }, [date])
+```
+
+**Edição extra — atualizar o resumo depois de concluir/cancelar.** Dentro de `mudarStatus`, logo depois de atualizar a lista (`setList(...)`) e antes do `toast.sucesso(...)`, mande recarregar o resumo. Sem isso, o card de faturamento só atualizaria quando você trocasse de dia e voltasse. Com isso, ele atualiza na hora:
+
+```typescript
+      setList((prev) => prev.map((a) => (a.id === id ? atualizado : a)))
+      // Atualiza o card de resumo (faturamento e contagens) sem trocar a data.
+      void carregarResumo()
+      toast.sucesso(
+        status === StatusAgendamento.REALIZADO
+          ? 'Atendimento concluído.'
+          : 'Atendimento cancelado.',
+      )
 ```
 
 **Edição 3 — o card.** Procure o `<DateChips ... />` (perto da linha 139):
@@ -1318,10 +1497,14 @@ function ResumoItem({ label, value }: { label: string; value: number }) {
 }
 ```
 
-- `money(resumo.faturamento)` formata em reais (ex.: "R$ 120,00").
-- O card só renderiza se `resumo` já carregou (`{resumo && (...)}`).
+- `money(resumo.faturamento)` formata o valor em reais (ex.: "R$ 120,00").
+- O card só aparece depois que o `resumo` carregou (é o que o `{resumo && (...)}` faz).
 
-Pronto! As duas features estão completas, do banco à tela.
+Com tudo no lugar, o topo da Agenda mostra o card de resumo do dia, com o faturamento em verde e as contagens de Agendados, Realizados e Cancelados:
+
+![Card de resumo do dia com faturamento e contagens no topo da Agenda](img/aluno1/agenda-resumo-faturamento.png)
+
+Pronto! As duas funcionalidades estão completas, do banco de dados até a tela.
 
 ---
 
@@ -1329,17 +1512,17 @@ Pronto! As duas features estão completas, do banco à tela.
 
 ### 4.1. Reiniciar o backend (obrigatório)
 
-Sempre que mexer no backend, derrube (Ctrl+C) e suba de novo, a partir de `backend/`:
+Toda vez que mexer no backend, desligue (Ctrl+C) e ligue de novo, a partir de `backend/`:
 
 ```bash
 backend/.venv/bin/python main.py
 ```
 
-Na primeira vez, confira no log a linha `Tabela 'avaliacao' criada/verificada`. Se ela **não** aparecer, você esqueceu de registrar o repo na lista `TABELAS` (volte ao passo A.4).
+Na primeira vez, procure no log a linha `Tabela 'avaliacao' criada/verificada`. Se ela **não** aparecer, é porque você esqueceu de registrar o repo na lista `TABELAS` (volte ao passo A.4).
 
 ### 4.2. Testar pela documentação interativa (`/docs`)
 
-Abra `http://localhost:8415/docs`. Lá dá para testar a API **sem o front**:
+Abra `http://localhost:8415/docs`. Lá dá para testar a API **sem precisar do frontend**:
 
 1. Faça login (há rota de auth no `/docs`, ou logue pela tela e use o mesmo navegador).
 2. **Avaliação:** ache `POST /api/agendamentos/{id}/avaliar`. Use o `id` de um agendamento **Realizado** do cliente logado. Envie `{"nota": 5, "comentario": "Excelente"}`. Deve voltar 201. Tente de novo o mesmo id → deve voltar 409 ("já foi avaliado").
@@ -1348,30 +1531,37 @@ Abra `http://localhost:8415/docs`. Lá dá para testar a API **sem o front**:
 
 ### 4.3. Testar pela tela (front)
 
-Com `npm run dev` rodando, abra `http://localhost:5185`.
+Com `bun run dev` rodando, abra `http://localhost:5185`.
 
 **Avaliação (logado como cliente):**
 
 1. Entre como `cliente@voudebarba.com`.
 2. Vá em **Meus agendamentos** (`/meus-agendamentos`).
-3. Na seção **Histórico**, num atendimento **Realizado**, clique **Avaliar**.
-4. Escolha as estrelas, escreva um comentário (opcional) e clique **Enviar**. Deve aparecer o toast "Avaliação enviada".
-5. Abra a página da barbearia (`/barbearia/:id`) e confira a média (ex.: "★ 4,7").
+3. Na seção **Histórico**, num atendimento **Realizado**, clique **Avaliar**. Abre o painel ali no cartão, com 5 estrelas, campo de comentário e os botões Enviar/Cancelar (o mesmo painel que você viu no passo A.10).
+4. Escolha as estrelas, escreva um comentário (opcional) e clique **Enviar**. Aparece o toast verde "Avaliação enviada. Obrigado!" e o painel fecha:
+
+   ![Toast de sucesso da avaliação](img/aluno1/avaliacao-toast-sucesso.png)
+
+   Se você tentar avaliar o mesmo atendimento de novo, o backend responde 409 e a UI mostra um toast laranja de aviso "Este atendimento já foi avaliado.":
+
+   ![Toast de aviso 409 já avaliado](img/aluno1/avaliacao-toast-409-ja-avaliado.png)
+
+5. Abra a página da barbearia (`/barbearia/:id`) e confira a média, exibida abaixo da descrição no formato "★ 4,0 (1 avaliação)". O bloco só aparece quando há pelo menos uma avaliação (é a mesma média que mostramos no passo A.11).
 
 **Faturamento (logado como dono):**
 
 1. Entre como `dom@voudebarba.com`.
 2. Vá em **Agenda** (`/agenda`).
-3. No topo, confira o card **Resumo do dia** com o faturamento e as contagens.
-4. Marque um agendamento como **Concluir** (Realizado) e veja o faturamento subir ao recarregar a data (troque de dia e volte, ou recarregue a página).
+3. No topo (abaixo dos chips de data), confira o card **Resumo do dia** com o faturamento em verde e as contagens Agendados/Realizados/Cancelados (o mesmo card que montamos no passo B.6).
+4. Marque um agendamento como **Concluir** (Realizado) e veja o faturamento subir na hora: a contagem de Realizados aumenta e o valor soma o preço do serviço. Em dias sem atendimentos Realizados, o card mostra R$ 0,00 com as contagens zeradas.
 
 ### 4.4. Typecheck e testes (opcional, mas recomendado)
 
 No frontend (a partir de `frontend/`):
 
 ```bash
-npx tsc -b --noEmit   # confere se os tipos batem
-npm run lint
+bunx tsc -b --noEmit   # confere se os tipos batem
+bun run lint
 ```
 
 No backend (a partir de `backend/`):
@@ -1433,13 +1623,13 @@ Marque cada caixa só depois de testar de verdade.
 **Feature B — Faturamento (frontend):**
 
 - [ ] `types.ts`: interface `ResumoDia`.
-- [ ] `AgendaPage.tsx`: importa `money` + tipo, estado + `useEffect` do resumo, card + `ResumoItem`.
+- [ ] `AgendaPage.tsx`: importa `money` + tipo, estado, função `carregarResumo` + `useEffect` do resumo, chamada de `carregarResumo()` dentro de `mudarStatus`, card + `ResumoItem`.
 
 **Geral:**
 
 - [ ] Backend reiniciado; log confirma `Tabela 'avaliacao' criada/verificada`.
 - [ ] Testado no `/docs` (201 ao avaliar, 409 ao repetir, resumo correto).
 - [ ] Testado na tela (avaliar como cliente, ver média, ver resumo como dono).
-- [ ] `npx tsc -b --noEmit` sem erros.
+- [ ] `bunx tsc -b --noEmit` sem erros.
 
-Parabéns — se todas as caixas estão marcadas, a feature está funcionando ponta a ponta. 🎉
+Parabéns — se todas as caixas estão marcadas, as duas funcionalidades estão funcionando de ponta a ponta. 🎉
