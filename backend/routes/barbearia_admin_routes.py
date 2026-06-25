@@ -36,6 +36,7 @@ from dtos.responses.barbearia_response import (
     HorarioResponse,
 )
 from dtos.responses.barbeiro_response import BarbeiroResponse
+from dtos.responses.resumo_dia_response import ResumoDiaResponse  # <-- novo
 from dtos.responses.servico_response import ServicoResponse
 
 # Models
@@ -250,6 +251,25 @@ async def agenda(
     )
     return [AgendamentoResponse.de_agendamento(a) for a in agendamentos]
 
+@router.get("/agenda/resumo", response_model=ResumoDiaResponse)
+@requer_autenticacao([Perfil.BARBEARIA.value])
+async def resumo_agenda(
+    request: Request,
+    data: Optional[str] = None,
+    usuario_logado: Optional[UsuarioLogado] = None,
+):
+    """Resumo do dia da barbearia do dono logado: contagens + faturamento.
+
+    Sem ``data``, usa o dia de hoje (timezone da aplicação).
+    """
+    assert usuario_logado is not None
+    checar_rate_limit(barbearia_leitura_limiter, request)
+
+    barbearia = _obter_barbearia_do_dono(usuario_logado)
+    data_iso = data or hoje().strftime("%Y-%m-%d")
+
+    resumo = agendamento_repo.resumo_do_dia(barbearia.id, data_iso)
+    return ResumoDiaResponse.de_resumo(data_iso, resumo)
 
 @router.patch(
     "/agendamentos/{id}/status",

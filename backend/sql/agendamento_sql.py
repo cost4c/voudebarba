@@ -64,3 +64,15 @@ UPDATE agendamento
 SET status = ?
 WHERE id = ?
 """
+
+RESUMO_DO_DIA = """
+SELECT
+    COUNT(*) AS total,
+    SUM(CASE WHEN a.status = 'Agendado'  THEN 1 ELSE 0 END) AS agendados,
+    SUM(CASE WHEN a.status = 'Realizado' THEN 1 ELSE 0 END) AS realizados,
+    SUM(CASE WHEN a.status = 'Cancelado' THEN 1 ELSE 0 END) AS cancelados,
+    SUM(CASE WHEN a.status = 'Realizado' THEN s.preco ELSE 0 END) AS faturamento
+FROM agendamento a
+INNER JOIN servico s ON a.servico_id = s.id
+WHERE a.barbearia_id = ? AND date(a.inicio) = ?
+"""

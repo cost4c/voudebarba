@@ -14,6 +14,7 @@ from sql.agendamento_sql import (
     OBTER_POR_BARBEARIA_E_DIA,
     OBTER_POR_CLIENTE,
     OBTER_POR_ID,
+    RESUMO_DO_DIA,  # <-- novo
 )
 from util.db_util import obter_conexao
 from util.logger_config import logger
@@ -173,3 +174,30 @@ def ha_conflito(
         if inicio < ag.fim and ag.inicio < fim:
             return True
     return False
+
+
+def resumo_do_dia(barbearia_id: int, data_iso: str) -> dict:
+    """Resumo do dia de uma barbearia: contagens por status e faturamento.
+
+    Retorna um dict com as chaves: total, agendados, realizados, cancelados,
+    faturamento. Quando não há agendamentos, todos vêm zerados.
+    """
+    with obter_conexao() as conn:
+        cursor = conn.cursor()
+        cursor.execute(RESUMO_DO_DIA, (barbearia_id, data_iso))
+        row = cursor.fetchone()
+        if not row:
+            return {
+                "total": 0,
+                "agendados": 0,
+                "realizados": 0,
+                "cancelados": 0,
+                "faturamento": 0.0,
+            }
+        return {
+            "total": row["total"] or 0,
+            "agendados": row["agendados"] or 0,
+            "realizados": row["realizados"] or 0,
+            "cancelados": row["cancelados"] or 0,
+            "faturamento": float(row["faturamento"] or 0.0),
+        }
