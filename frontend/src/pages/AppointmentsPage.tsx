@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router'
 import { api, ApiError } from '../lib/api'
 import { StatusAgendamento } from '../lib/types'
 import type { Agendamento } from '../lib/types'
+import { avaliarSchema } from '../lib/schemas'
 import { fmtDate, isoLocal, money, MONS } from '../lib/datas'
 import { useUIStore, toast } from '../store/uiStore'
 import StatusBadge from '../components/vdb/StatusBadge'
@@ -43,6 +44,39 @@ export default function AppointmentsPage() {
   const pedirConfirmacao = useUIStore((s) => s.pedirConfirmacao)
   const [appts, setAppts] = useState<Agendamento[]>([])
   const [carregando, setCarregando] = useState(true)
+    // Qual agendamento está sendo avaliado e a nota escolhida no momento.
+  const [avaliandoId, setAvaliandoId] = useState<number | null>(null)
+  const [notaSel, setNotaSel] = useState<number>(5)
+  const [comentario, setComentario] = useState<string>('')
+  const [enviandoAvaliacao, setEnviandoAvaliacao] = useState(false)
+
+  function abrirAvaliacao(id: number) {
+    setAvaliandoId(id)
+    setNotaSel(5)
+    setComentario('')
+  }
+
+  async function enviarAvaliacao(a: Agendamento) {
+    const parsed = avaliarSchema.safeParse({ nota: notaSel, comentario })
+    if (!parsed.success) {
+      toast.erro(parsed.error.issues[0]?.message ?? 'Dados inválidos.')
+      return
+    }
+    setEnviandoAvaliacao(true)
+    try {
+      await api.post(`/agendamentos/${a.id}/avaliar`, parsed.data)
+      toast.sucesso('Avaliação enviada. Obrigado!')
+      setAvaliandoId(null)
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 409) {
+        toast.aviso(e.message)
+      } else {
+        toast.erro(e instanceof ApiError ? e.message : 'Erro ao enviar avaliação.')
+      }
+    } finally {
+      setEnviandoAvaliacao(false)
+    }
+  }
 
   useEffect(() => {
     let vivo = true
@@ -262,6 +296,103 @@ export default function AppointmentsPage() {
                     {a.dateLabel} · {a.hora}
                   </div>
                   <StatusBadge status={a.status} />
+                  {a.status === StatusAgendamento.REALIZADO && avaliandoId !== a.id && (
+                    <button
+                      onClick={() => abrirAvaliacao(a.id)}
+                      style={{
+                        background: 'var(--accent)',
+                        color: '#25343F',
+                        border: 'none',
+                        fontWeight: 700,
+                        fontSize: 13,
+                        padding: '9px 15px',
+                        borderRadius: 9,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Avaliar
+                    </button>
+                  )}
+                  {avaliandoId === a.id && (
+                    <div
+                      style={{
+                        flexBasis: '100%',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        gap: 10,
+                        marginTop: 8,
+                        paddingTop: 10,
+                        borderTop: '1px solid #EEF2F3',
+                      }}
+                    >
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <button
+                            key={n}
+                            onClick={() => setNotaSel(n)}
+                            aria-label={`Nota ${n}`}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              fontSize: 22,
+                              lineHeight: 1,
+                              color: n <= notaSel ? '#FF9B51' : '#D2DCE0',
+                            }}
+                          >
+                            ★
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        value={comentario}
+                        onChange={(e) => setComentario(e.target.value)}
+                        placeholder="Comentário (opcional)"
+                        maxLength={500}
+                        style={{
+                          flex: 1,
+                          minWidth: 160,
+                          border: '1px solid #E3E9EC',
+                          borderRadius: 9,
+                          padding: '9px 12px',
+                          fontSize: 14,
+                        }}
+                      />
+                      <button
+                        disabled={enviandoAvaliacao}
+                        onClick={() => enviarAvaliacao(a)}
+                        style={{
+                          background: '#25343F',
+                          color: '#fff',
+                          border: 'none',
+                          fontWeight: 700,
+                          fontSize: 13,
+                          padding: '9px 15px',
+                          borderRadius: 9,
+                          cursor: enviandoAvaliacao ? 'not-allowed' : 'pointer',
+                          opacity: enviandoAvaliacao ? 0.6 : 1,
+                        }}
+                      >
+                        {enviandoAvaliacao ? 'Enviando…' : 'Enviar'}
+                      </button>
+                      <button
+                        onClick={() => setAvaliandoId(null)}
+                        style={{
+                          background: '#fff',
+                          border: '1px solid #E3E9EC',
+                          color: '#6B7A84',
+                          fontWeight: 700,
+                          fontSize: 13,
+                          padding: '9px 15px',
+                          borderRadius: 9,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  )}
                 </article>
               ))}
             </div>

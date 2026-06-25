@@ -134,6 +134,8 @@ export interface BarbeariaResumo {
 
 // Espelha backend/dtos/responses/barbearia_response.py (BarbeariaDetalheResponse)
 export interface BarbeariaDetalhe extends BarbeariaResumo {
+  media_avaliacoes: number
+  total_avaliacoes: number
   servicos: Servico[]
   barbeiros: Barbeiro[]
   horarios: Horario[]
@@ -158,4 +160,7 @@ export interface Agendamento {
   hora: string // "HH:MM"
   status: string // StatusAgendamentoValor
   observacao: string | null
+  agendamento_id: number
+  nota: number
+  comentario: string | null
 }

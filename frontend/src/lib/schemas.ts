@@ -165,3 +165,14 @@ export const barbeariaEditSchema = z.object({
   endereco_texto: z.string().max(200, 'Endereço muito longo').default(''),
 })
 export type BarbeariaEditForm = z.infer<typeof barbeariaEditSchema>
+
+// Espelha backend/dtos/avaliacao_dto.py (AvaliarDTO)
+export const avaliarSchema = z.object({
+  nota: z.coerce
+    .number({ message: 'Escolha uma nota' })
+    .int()
+    .min(1, 'A nota deve estar entre 1 e 5')
+    .max(5, 'A nota deve estar entre 1 e 5'),
+  comentario: z.string().max(500, 'Comentário muito longo').default(''),
+})
+export type AvaliarForm = z.infer<typeof avaliarSchema>

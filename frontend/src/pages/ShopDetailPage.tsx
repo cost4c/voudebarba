@@ -188,6 +188,26 @@ export default function ShopDetailPage() {
               {shop.nome}
             </h1>
             <p style={{ margin: '0 0 8px', color: '#5C6B76', fontSize: 15 }}>{shop.descricao}</p>
+            {shop.total_avaliacoes > 0 && (
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  marginBottom: 8,
+                  fontSize: 14,
+                  color: '#25343F',
+                  fontWeight: 700,
+                }}
+              >
+                <span style={{ color: '#FF9B51' }}>★</span>
+                {shop.media_avaliacoes.toFixed(1).replace('.', ',')}
+                <span style={{ color: '#7B8990', fontWeight: 500 }}>
+                  ({shop.total_avaliacoes}{' '}
+                  {shop.total_avaliacoes === 1 ? 'avaliação' : 'avaliações'})
+                </span>
+              </div>
+            )}
             <div
               style={{
                 display: 'flex',
