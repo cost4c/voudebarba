@@ -95,6 +95,8 @@ class BarbeariaDetalheResponse(BaseModel):
     foto_url: Optional[str] = None
     total_servicos: int = 0
     total_barbeiros: int = 0
+    media_avaliacoes: float = 0.0       # <-- novo
+    total_avaliacoes: int = 0            # <-- novo
     servicos: list[ServicoResponse] = Field(default_factory=list)
     barbeiros: list[BarbeiroResponse] = Field(default_factory=list)
     horarios: list[HorarioResponse] = Field(default_factory=list)
@@ -106,6 +108,8 @@ class BarbeariaDetalheResponse(BaseModel):
         servicos: list[ServicoResponse],
         barbeiros: list[BarbeiroResponse],
         horarios: list[HorarioFuncionamento],
+        media_avaliacoes: float = 0.0,   # <-- novo
+        total_avaliacoes: int = 0,        # <-- novo
     ) -> "BarbeariaDetalheResponse":
         """Constrói o detalhe a partir da barbearia e das listas já montadas.
 
@@ -122,6 +126,8 @@ class BarbeariaDetalheResponse(BaseModel):
             foto_url=barbearia.foto_url,
             total_servicos=barbearia.total_servicos,
             total_barbeiros=barbearia.total_barbeiros,
+            media_avaliacoes=media_avaliacoes,    # <-- novo
+            total_avaliacoes=total_avaliacoes,     # <-- novo
             servicos=servicos,
             barbeiros=barbeiros,
             horarios=[HorarioResponse.de_horario(h) for h in horarios],

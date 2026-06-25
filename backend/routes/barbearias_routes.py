@@ -37,6 +37,7 @@ from dtos.responses.servico_response import ServicoResponse
 # Repositories
 from repo import (
     agendamento_repo,
+    avaliacao_repo,  # <-- novo
     barbearia_repo,
     barbeiro_repo,
     servico_repo,
@@ -142,12 +143,15 @@ async def obter(
 
     servicos = servico_repo.obter_por_barbearia(id, somente_ativos=True)
     barbeiros = barbeiro_repo.obter_por_barbearia(id, somente_ativos=True)
+    media, total_avaliacoes = avaliacao_repo.media_por_barbearia(id)  # <-- novo
 
     return BarbeariaDetalheResponse.de_barbearia(
         barbearia,
         [ServicoResponse.de_servico(s) for s in servicos],
         [BarbeiroResponse.de_barbeiro(b) for b in barbeiros],
         barbearia.horarios,
+        media_avaliacoes=media,            # <-- novo
+        total_avaliacoes=total_avaliacoes,  # <-- novo
     )
 
 

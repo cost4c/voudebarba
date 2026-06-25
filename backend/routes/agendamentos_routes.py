@@ -24,17 +24,21 @@ from fastapi import APIRouter, HTTPException, Request, status
 
 # DTOs (entrada)
 from dtos.agendamento_dto import CriarAgendamentoDTO
+from dtos.avaliacao_dto import AvaliarDTO  # <-- novo
 
 # Schemas (saída)
 from dtos.responses.agendamento_response import AgendamentoResponse
+from dtos.responses.avaliacao_response import AvaliacaoResponse  # <-- novo
 
 # Models
 from model.agendamento_model import Agendamento, StatusAgendamento
+from model.avaliacao_model import Avaliacao  # <-- novo
 from model.usuario_logado_model import UsuarioLogado
 
 # Repositories
 from repo import (
     agendamento_repo,
+    avaliacao_repo,  # <-- novo
     barbeiro_repo,
     servico_repo,
 )
@@ -70,6 +74,13 @@ agendamento_cancelar_limiter = DynamicRateLimiter(
     padrao_max=20,
     padrao_minutos=10,
     nome="agendamento_cancelar",
+)
+agendamento_avaliar_limiter = DynamicRateLimiter(
+    chave_max="rate_limit_agendamento_avaliar_max",
+    chave_minutos="rate_limit_agendamento_avaliar_minutos",
+    padrao_max=20,
+    padrao_minutos=10,
+    nome="agendamento_avaliar",
 )
 
 
@@ -238,3 +249,63 @@ async def cancelar(
 
     atualizado = agendamento_repo.obter_por_id(id)
     return AgendamentoResponse.de_agendamento(atualizado)
+
+
+# =============================================================================
+# Avaliação
+# =============================================================================
+
+@router.post(
+    "/{id}/avaliar",
+    response_model=AvaliacaoResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+@requer_autenticacao()
+async def avaliar(
+    request: Request,
+    id: int,
+    dto: AvaliarDTO,
+    usuario_logado: Optional[UsuarioLogado] = None,
+):
+    """Registra a avaliação (nota 1-5) de um atendimento Realizado do cliente."""
+    assert usuario_logado is not None
+    checar_rate_limit(agendamento_avaliar_limiter, request)
+
+    # Carrega o agendamento garantindo que pertence ao cliente logado (404/403).
+    agendamento = _obter_agendamento_do_cliente(id, usuario_logado)
+
+    # Só atendimentos já Realizados podem ser avaliados.
+    if agendamento.status != StatusAgendamento.REALIZADO:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Só é possível avaliar atendimentos já realizados.",
+        )
+
+    # Um agendamento só pode ser avaliado uma vez.
+    if avaliacao_repo.obter_por_agendamento(id) is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Este atendimento já foi avaliado.",
+        )
+
+    avaliacao = Avaliacao(
+        id=0,
+        agendamento_id=id,
+        barbearia_id=agendamento.barbearia_id,
+        nota=dto.nota,
+        comentario=dto.comentario or None,
+    )
+    avaliacao_id = avaliacao_repo.inserir(avaliacao)
+    if not avaliacao_id:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao registrar a avaliação. Tente novamente.",
+        )
+
+    logger.info(
+        f"Avaliação #{avaliacao_id} (nota {dto.nota}) registrada por cliente "
+        f"{usuario_logado.id} no agendamento {id}"
+    )
+
+    criada = avaliacao_repo.obter_por_agendamento(id)
+    return AvaliacaoResponse.de_avaliacao(criada)

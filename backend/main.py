@@ -30,7 +30,7 @@ from repo import (
     indices_repo,
     auditoria_repo,
 )
-from repo import barbearia_repo, barbeiro_repo, servico_repo, agendamento_repo
+from repo import barbearia_repo, barbeiro_repo, servico_repo, agendamento_repo, avaliacao_repo
 
 # Rotas (API JSON)
 from routes.auth_routes import router as auth_router
@@ -100,6 +100,7 @@ TABELAS = [
     (barbeiro_repo, "barbeiro"),
     (servico_repo, "servico"),
     (agendamento_repo, "agendamento"),
+    (avaliacao_repo, "avaliacao"),
 ]
 
 logger.info("Criando tabelas do banco de dados...")
