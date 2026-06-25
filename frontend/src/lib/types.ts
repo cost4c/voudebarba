@@ -164,3 +164,13 @@ export interface Agendamento {
   nota: number
   comentario: string | null
 }
+
+// Espelha backend/dtos/responses/resumo_dia_response.py (ResumoDiaResponse)
+export interface ResumoDia {
+  data: string
+  total: number
+  agendados: number
+  realizados: number
+  cancelados: number
+  faturamento: number
+}

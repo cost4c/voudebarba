@@ -5,10 +5,10 @@
 // PATCH /barbearia/agendamentos/{id}/status (concluir/cancelar).
 import { useEffect, useState } from 'react'
 import { api, ApiError } from '../lib/api'
-import { isoLocal, addDays, initials } from '../lib/datas'
+import { isoLocal, addDays, initials, money } from '../lib/datas'
 import { colors, fonts } from '../lib/theme'
 import { StatusAgendamento } from '../lib/types'
-import type { Agendamento, BarbeariaDetalhe } from '../lib/types'
+import type { Agendamento, BarbeariaDetalhe, ResumoDia } from '../lib/types'
 import { toast, useUIStore } from '../store/uiStore'
 import DateChips from '../components/vdb/DateChips'
 import StatusBadge from '../components/vdb/StatusBadge'
@@ -20,6 +20,7 @@ export default function AgendaPage() {
   const [carregando, setCarregando] = useState(true)
   const [salvandoId, setSalvandoId] = useState<number | null>(null)
   const pedirConfirmacao = useUIStore((s) => s.pedirConfirmacao)
+    const [resumo, setResumo] = useState<ResumoDia | null>(null)
 
   // Nome da barbearia do gestor (para o título) — carrega uma vez.
   useEffect(() => {
@@ -84,6 +85,8 @@ export default function AgendaPage() {
         status,
       })
       setList((prev) => prev.map((a) => (a.id === id ? atualizado : a)))
+      // Atualiza o card de resumo (faturamento e contagens) sem trocar a data.
+      void carregarResumo()
       toast.sucesso(
         status === StatusAgendamento.REALIZADO
           ? 'Atendimento concluído.'
@@ -95,6 +98,30 @@ export default function AgendaPage() {
     } finally {
       setSalvandoId(null)
     }
+
+      // Resumo do dia (contagens + faturamento) — recarrega ao trocar a data e
+  // também após concluir/cancelar um atendimento (ver mudarStatus).
+  function carregarResumo() {
+    return api
+      .get<ResumoDia>(`/barbearia/agenda/resumo?data=${date}`)
+      .then((r) => setResumo(r))
+      .catch(() => setResumo(null))
+  }
+
+  useEffect(() => {
+    let vivo = true
+    api
+      .get<ResumoDia>(`/barbearia/agenda/resumo?data=${date}`)
+      .then((r) => {
+        if (vivo) setResumo(r)
+      })
+      .catch(() => {
+        if (vivo) setResumo(null)
+      })
+    return () => {
+      vivo = false
+    }
+  }, [date])
   }
 
   const total = list.length
@@ -139,6 +166,41 @@ export default function AgendaPage() {
       <div style={{ marginBottom: 22 }}>
         <DateChips count={7} selected={date} onSelect={setDate} scroll width={64} />
       </div>
+
+            {resumo && (
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 12,
+            marginBottom: 22,
+            background: '#fff',
+            border: '1px solid #E3E9EC',
+            borderRadius: 14,
+            padding: '16px 20px',
+            alignItems: 'center',
+          }}
+        >
+          <div style={{ flex: 1, minWidth: 160 }}>
+            <div style={{ fontSize: 12, color: '#7B8990', fontWeight: 600 }}>
+              Faturamento do dia
+            </div>
+            <div
+              style={{
+                fontFamily: "'Archivo', sans-serif",
+                fontWeight: 800,
+                fontSize: 26,
+                color: '#2E6A4C',
+              }}
+            >
+              {money(resumo.faturamento)}
+            </div>
+          </div>
+          <ResumoItem label="Agendados" value={resumo.agendados} />
+          <ResumoItem label="Realizados" value={resumo.realizados} />
+          <ResumoItem label="Cancelados" value={resumo.cancelados} />
+        </div>
+      )}
 
       {carregando ? (
         <div
@@ -319,6 +381,24 @@ function Stat({ value, label, color }: { value: number; label: string; color?: s
           fontWeight: 800,
           fontSize: 22,
           color: color || '#25343F',
+        }}
+      >
+        {value}
+      </div>
+      <div style={{ fontSize: 11.5, color: '#7B8990', fontWeight: 600 }}>{label}</div>
+    </div>
+  )
+}
+
+function ResumoItem({ label, value }: { label: string; value: number }) {
+  return (
+    <div style={{ textAlign: 'center', minWidth: 78 }}>
+      <div
+        style={{
+          fontFamily: "'Archivo', sans-serif",
+          fontWeight: 800,
+          fontSize: 20,
+          color: '#25343F',
         }}
       >
         {value}
