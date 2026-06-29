@@ -113,12 +113,29 @@ def _dia_semana_da_data(data_iso: str) -> int:
 async def listar(
     request: Request,
     q: Optional[str] = None,
+    servico_id: Optional[int] = None,
 ):
-    """Lista barbearias ativas, filtrando por nome/endereço quando ``q`` informado."""
+    """Lista barbearias ativas.
+
+    Filtra por nome/endereço quando ``q`` é informado e, quando ``servico_id``
+    é informado, restringe às barbearias que oferecem aquele serviço (ativo).
+    """
     checar_rate_limit(barbearias_listar_limiter, request)
 
-    barbearias = barbearia_repo.obter_todos(q or "")
+    if servico_id is not None:
+        barbearias = barbearia_repo.obter_todos_por_servico(servico_id, q or "")
+    else:
+        barbearias = barbearia_repo.obter_todos(q or "")
+
     return [BarbeariaResumoResponse.de_barbearia(b) for b in barbearias]
+
+@router.get("/servicos", response_model=list[ServicoResponse])
+async def listar_servicos(request: Request):
+    """Lista serviços ativos distintos (para o filtro por serviço na home)."""
+    checar_rate_limit(barbearias_listar_limiter, request)
+
+    servicos = servico_repo.obter_servicos_distintos()
+    return [ServicoResponse.de_servico(s) for s in servicos]
 
 
 # =============================================================================

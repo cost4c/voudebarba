@@ -38,6 +38,34 @@ WHERE b.ativa = 1
 ORDER BY b.nome COLLATE NOCASE ASC
 """
 
+# Filtra por NOME do serviço (o chip envia um id representativo MIN(id) por
+# nome via OBTER_SERVICOS_DISTINTOS). Casar por sv.id exato deixaria de fora
+# barbearias que oferecem um serviço de MESMO nome porém com outro id. Por isso
+# resolvemos o nome do serviço a partir do id recebido e casamos todas as
+# barbearias que tenham um serviço ativo com aquele nome (case-insensitive).
+OBTER_TODOS_POR_SERVICO = """
+SELECT b.*,
+       (SELECT COUNT(*) FROM servico s WHERE s.barbearia_id = b.id AND s.ativo = 1) AS total_servicos,
+       (SELECT COUNT(*) FROM barbeiro br WHERE br.barbearia_id = b.id AND br.ativo = 1) AS total_barbeiros
+FROM barbearia b
+WHERE b.ativa = 1
+  AND EXISTS (
+        SELECT 1
+        FROM servico sv
+        WHERE sv.barbearia_id = b.id
+          AND sv.ativo = 1
+          AND LOWER(sv.nome) = (
+                SELECT LOWER(nome) FROM servico WHERE id = ?
+              )
+      )
+  AND (
+        ? = ''
+        OR LOWER(b.nome) LIKE '%' || LOWER(?) || '%'
+        OR LOWER(b.endereco_texto) LIKE '%' || LOWER(?) || '%'
+      )
+ORDER BY b.nome COLLATE NOCASE ASC
+"""
+
 OBTER_POR_ID = """
 SELECT b.*,
        (SELECT COUNT(*) FROM servico s WHERE s.barbearia_id = b.id AND s.ativo = 1) AS total_servicos,

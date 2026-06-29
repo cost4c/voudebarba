@@ -18,6 +18,7 @@ Cobre:
 # =============================================================================
 
 # Standard library
+from datetime import datetime
 from typing import Optional
 
 # Third-party
@@ -36,6 +37,7 @@ from dtos.responses.barbearia_response import (
     HorarioResponse,
 )
 from dtos.responses.barbeiro_response import BarbeiroResponse
+from dtos.responses.ocupacao_response import OcupacaoResponse
 from dtos.responses.servico_response import ServicoResponse
 
 # Models
@@ -50,6 +52,7 @@ from repo import (
     agendamento_repo,
     barbearia_repo,
     barbeiro_repo,
+    relatorio_repo,
     servico_repo,
 )
 
@@ -514,3 +517,36 @@ async def atualizar_horarios(
     )
 
     return [HorarioResponse.de_horario(h) for h in persistidos]
+
+    # =============================================================================
+# Relatórios
+# =============================================================================
+
+@router.get("/estatisticas/ocupacao", response_model=list[OcupacaoResponse])
+@requer_autenticacao([Perfil.BARBEARIA.value])
+async def relatorio_ocupacao(
+    request: Request,
+    data: Optional[str] = None,
+    usuario_logado: Optional[UsuarioLogado] = None,
+):
+    """Ocupação de cada barbeiro da barbearia num dia (% de minutos ocupados).
+
+    Sem ``data``, usa o dia de hoje (timezone da aplicação).
+    """
+    assert usuario_logado is not None
+    checar_rate_limit(barbearia_leitura_limiter, request)
+
+    barbearia = _obter_barbearia_do_dono(usuario_logado)
+    data_iso = data or hoje().strftime("%Y-%m-%d")
+
+    # Valida o formato da data quando informada.
+    try:
+        datetime.strptime(data_iso, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Data inválida. Use o formato YYYY-MM-DD.",
+        )
+
+    ocupacao = relatorio_repo.obter_ocupacao_por_barbeiro(barbearia, data_iso)
+    return [OcupacaoResponse(**o) for o in ocupacao]

@@ -43,3 +43,11 @@ WHERE id = ?
 """
 
 EXCLUIR = "DELETE FROM servico WHERE id = ?"
+
+OBTER_SERVICOS_DISTINTOS = """
+SELECT MIN(id) AS id, 0 AS barbearia_id, nome, '' AS descricao, 0 AS preco, 0 AS duracao_min, 1 AS ativo
+FROM servico
+WHERE ativo = 1
+GROUP BY LOWER(nome)
+ORDER BY nome COLLATE NOCASE ASC
+"""

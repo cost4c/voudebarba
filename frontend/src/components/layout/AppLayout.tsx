@@ -131,6 +131,7 @@ function Header() {
           {isBarbearia && (
             <>
               <NavItem to="/agenda">Agenda</NavItem>
+              <NavItem to="/relatorios">Relatórios</NavItem>
               <NavItem to="/configuracoes">Configurações</NavItem>
             </>
           )}

@@ -1,8 +1,8 @@
-// Listagem/busca de barbearias (rota "/"). Portado de design/react-app/src/pages/HomePage.jsx,
-// trocando o estado mock (AppContext) por GET /barbearias (?q ao buscar) via api.
+// Listagem/busca de barbearias (rota "/").
+// Agora com filtro por serviço: chips de serviço chamam GET /barbearias?servico_id=.
 import { useEffect, useState } from 'react'
 import { api, ApiError } from '../lib/api'
-import type { BarbeariaResumo } from '../lib/types'
+import type { BarbeariaResumo, Servico } from '../lib/types'
 import ShopCard from '../components/vdb/ShopCard'
 import EmptyState from '../components/ui/EmptyState'
 import Spinner from '../components/ui/Spinner'
@@ -13,7 +13,25 @@ export default function HomePage() {
   const [shops, setShops] = useState<BarbeariaResumo[]>([])
   const [carregando, setCarregando] = useState(true)
 
-  // Debounce da busca: refaz GET /barbearias?q= a cada mudança estabilizada.
+  // Lista de serviços para os chips + qual está selecionado (null = todos).
+  const [servicos, setServicos] = useState<Servico[]>([])
+  const [servicoId, setServicoId] = useState<number | null>(null)
+
+  // Carrega os serviços disponíveis uma única vez (para montar os chips).
+  useEffect(() => {
+    let vivo = true
+    api
+      .get<Servico[]>('/barbearias/servicos')
+      .then((d) => vivo && setServicos(d))
+      .catch(() => {
+        /* silencioso: sem chips, a busca por nome continua funcionando */
+      })
+    return () => {
+      vivo = false
+    }
+  }, [])
+
+  // Debounce da busca: refaz GET /barbearias a cada mudança de texto OU de serviço.
   useEffect(() => {
     const controller = new AbortController()
     const q = query.trim()
@@ -21,7 +39,10 @@ export default function HomePage() {
       setCarregando(true)
       api
         .get<BarbeariaResumo[]>('/barbearias', {
-          params: q ? { q } : undefined,
+          params: {
+            q: q || undefined,
+            servico_id: servicoId ?? undefined,
+          },
           signal: controller.signal,
         })
         .then((data) => {
@@ -38,7 +59,7 @@ export default function HomePage() {
       controller.abort()
       clearTimeout(timer)
     }
-  }, [query])
+  }, [query, servicoId])
 
   return (
     <section>
@@ -111,6 +132,24 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Chips de serviço — filtram a lista por servico_id. */}
+      {servicos.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 22 }}>
+          <Chip ativo={servicoId === null} onClick={() => setServicoId(null)}>
+            Todos
+          </Chip>
+          {servicos.map((sv) => (
+            <Chip
+              key={sv.id}
+              ativo={servicoId === sv.id}
+              onClick={() => setServicoId(sv.id)}
+            >
+              {sv.nome}
+            </Chip>
+          ))}
+        </div>
+      )}
+
       {carregando ? (
         <Spinner texto="Carregando barbearias..." />
       ) : shops.length === 0 ? (
@@ -118,8 +157,8 @@ export default function HomePage() {
           icon="shop"
           titulo="Nenhuma barbearia encontrada"
           mensagem={
-            query.trim()
-              ? `Nenhuma barbearia encontrada para "${query.trim()}".`
+            query.trim() || servicoId !== null
+              ? 'Nenhuma barbearia encontrada para este filtro.'
               : 'Ainda não há barbearias disponíveis.'
           }
         />
@@ -134,5 +173,35 @@ export default function HomePage() {
         </div>
       )}
     </section>
+  )
+}
+
+// Chip de filtro (pílula clicável). Estilo inline + tokens, sem Bootstrap.
+function Chip({
+  children,
+  ativo,
+  onClick,
+}: {
+  children: React.ReactNode
+  ativo: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        border: '1px solid',
+        borderColor: ativo ? '#25343F' : '#DCE3E7',
+        background: ativo ? '#25343F' : '#fff',
+        color: ativo ? '#fff' : '#5C6B76',
+        fontWeight: 600,
+        fontSize: 13.5,
+        padding: '8px 14px',
+        borderRadius: 999,
+        cursor: 'pointer',
+      }}
+    >
+      {children}
+    </button>
   )
 }

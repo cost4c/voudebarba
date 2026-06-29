@@ -159,3 +159,12 @@ export interface Agendamento {
   status: string // StatusAgendamentoValor
   observacao: string | null
 }
+
+// Espelha backend/dtos/responses/ocupacao_response.py (OcupacaoResponse)
+export interface Ocupacao {
+  barbeiro_id: number
+  barbeiro_nome: string
+  minutos_ocupados: number
+  minutos_disponiveis: number
+  percentual: number // 0..100
+}

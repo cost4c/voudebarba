@@ -19,6 +19,7 @@ from sql.barbearia_sql import (
     INSERIR,
     ATUALIZAR,
     OBTER_TODOS,
+    OBTER_TODOS_POR_SERVICO,
     OBTER_TODOS_ADMIN,
     OBTER_POR_ID,
     OBTER_POR_DONO,
@@ -131,6 +132,19 @@ def obter_todos(q: str = "") -> list[Barbearia]:
         rows = cursor.fetchall()
         return [_row_to_barbearia(row) for row in rows]
 
+def obter_todos_por_servico(servico_id: int, q: str = "") -> list[Barbearia]:
+    """Lista barbearias ativas que oferecem o serviço informado (ativo).
+
+    Mesmo filtro de nome/endereço de ``obter_todos``. O ``servico_id`` é o id
+    representativo enviado pelo chip; a query resolve o NOME desse serviço e
+    retorna todas as barbearias que oferecem um serviço ativo com aquele nome.
+    """
+    termo = (q or "").strip()
+    with obter_conexao() as conn:
+        cursor = conn.cursor()
+        cursor.execute(OBTER_TODOS_POR_SERVICO, (servico_id, termo, termo, termo))
+        rows = cursor.fetchall()
+        return [_row_to_barbearia(row) for row in rows]
 
 def obter_todos_admin() -> list[Barbearia]:
     """Lista TODAS as barbearias (inclusive inativas), com dados do dono.

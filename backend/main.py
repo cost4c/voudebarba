@@ -138,6 +138,7 @@ ROUTERS = [
     (barbearias_router, ["Barbearias"], "barbearias"),
     (agendamentos_router, ["Agendamentos"], "agendamentos"),
     (barbearia_admin_router, ["Barbearia"], "barbearia"),
+
 ]
 
 for router, tags, nome in ROUTERS:

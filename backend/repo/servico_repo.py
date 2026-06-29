@@ -9,6 +9,7 @@ from sql.servico_sql import (
     OBTER_POR_BARBEARIA,
     OBTER_POR_BARBEARIA_ATIVOS,
     OBTER_POR_ID,
+    OBTER_SERVICOS_DISTINTOS,
     EXCLUIR,
 )
 from util.db_util import obter_conexao
@@ -87,3 +88,11 @@ def excluir(id: int) -> bool:
         cursor = conn.cursor()
         cursor.execute(EXCLUIR, (id,))
         return cursor.rowcount > 0
+
+def obter_servicos_distintos() -> list[Servico]:
+    """Lista serviços ativos distintos por nome (para chips de filtro público)."""
+    with obter_conexao() as conn:
+        cursor = conn.cursor()
+        cursor.execute(OBTER_SERVICOS_DISTINTOS)
+        rows = cursor.fetchall()
+        return [_row_to_servico(row) for row in rows]

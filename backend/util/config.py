@@ -21,7 +21,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "sua-chave-secreta-super-segura-mude-isso-e
 RUNNING_MODE_CHECK = os.getenv("RUNNING_MODE", "Production")
 if RUNNING_MODE_CHECK.lower() != "development":
     # Validação 1: Não pode usar a chave padrão
-    if SECRET_KEY == "sua-chave-secreta-super-segura-mude-isso-em-producao":
+    if SECRET_KEY == "TuwbHGUQuiExTyMEcJdPnsUcsbsOmmscPPUCu8WT1IE":
         raise ValueError(
             "SEGURANÇA CRÍTICA: SECRET_KEY padrão não pode ser usada em produção!\n"
             "Configure uma chave secreta forte no arquivo .env:\n"

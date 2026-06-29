@@ -15,6 +15,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import AppointmentsPage from './pages/AppointmentsPage'
 import AgendaPage from './pages/AgendaPage'
 import ConfigPage from './pages/ConfigPage'
+import RelatoriosPage from './pages/RelatoriosPage'
 import PerfilPage from './pages/PerfilPage'
 import AdminDashboardPage from './pages/AdminDashboardPage'
 import AdminClientesPage from './pages/AdminClientesPage'
@@ -56,6 +57,7 @@ export const router = createBrowserRouter([
             children: [
               { path: '/agenda', element: <AgendaPage /> },
               { path: '/configuracoes', element: <ConfigPage /> },
+              { path: '/relatorios', element: <RelatoriosPage /> },
             ],
           },
 
